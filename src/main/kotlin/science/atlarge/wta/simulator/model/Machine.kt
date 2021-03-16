@@ -6,7 +6,10 @@ class Machine(
         val id: MachineId,
         val name: String,
         val cluster: Cluster,
-        val numberOfCpus: Int
+        val numberOfCpus: Int,
+        val dvfsEnabled: Boolean,
+        val GHz: Double,
+        val TDP: Int
 ) {
 
     init {

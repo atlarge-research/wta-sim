@@ -18,7 +18,7 @@ class ClusterManager(
     private val machinesByFreeCpus = AVLTree(compareBy(MachineState::freeCpus, { it.machine.id }))
     private var stateChangedEventEmitted: Boolean = false
     private val dummyCluster = Cluster(-1, "X")
-    private val dummyMachine = Machine(-1, "X", dummyCluster, Int.MAX_VALUE)
+    private val dummyMachine = Machine(-1, "X", dummyCluster, Int.MAX_VALUE, false, 1.0, 1)
 
     init {
         for (machine in environment.machines) {
@@ -47,7 +47,7 @@ class ClusterManager(
     }
 
     fun machineStatesByAscendingFreeCpu(minimumFreeCpu: Int): Iterator<MachineState> {
-        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, minimumFreeCpu))
+        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, minimumFreeCpu, false, 1.0, 1))
     }
 
     fun machineStatesByDescendingFreeCpu(): Iterator<MachineState> {

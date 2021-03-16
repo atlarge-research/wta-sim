@@ -5,7 +5,10 @@ import science.atlarge.wta.simulator.model.Task
 
 class MachineState internal constructor(
         val machine: Machine,
-        freeCpus: Int
+        freeCpus: Int,
+        dvfsEnabled: Boolean,
+        GHz: Double,
+        TDP: Int
 ) {
 
     var freeCpus = freeCpus
@@ -15,7 +18,7 @@ class MachineState internal constructor(
     val runningTasks: Set<Task>
         get() = _runningTasks
 
-    constructor(machine: Machine) : this(machine, machine.numberOfCpus)
+    constructor(machine: Machine) : this(machine, machine.numberOfCpus, machine.dvfsEnabled, machine.GHz, machine.TDP)
 
     fun submitTask(task: Task) {
         require(task.cpuDemand <= freeCpus) {
