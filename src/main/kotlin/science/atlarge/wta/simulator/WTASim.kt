@@ -110,8 +110,8 @@ object WTASim {
 
         // Compute roughly the number of machines to meet the fraction
         val environment = Environment().apply {
-            val cluster = createCluster("Cluster")
             repeat(resourcesPerMachine.size) { i ->
+                val cluster = createCluster("Cluster ${i + 1}")
                 val numMachines = totalResourceUsage.toBigDecimal().divide(
                         BigDecimal.valueOf(traceEndTime - traceStartTime)
                                 .multiply(BigDecimal.valueOf(resourcesPerMachine[i].toLong())) // number of resources
