@@ -24,13 +24,13 @@ class Environment {
         }
     }
 
-    fun createMachine(name: String, cluster: Cluster, numberOfCpus: Int): Machine {
+    fun createMachine(name: String, cluster: Cluster, numberOfCpus: Int, DVFSEnabled: Boolean, relativeSpeed: Double, TDP: Int): Machine {
         require(checkClusterExists(cluster)) {
             "Cannot create machine: ${cluster.idString()} is not part of this environment"
         }
         synchronized(_machines) {
             val newMachineId = _machines.size
-            val newMachine = Machine(newMachineId, name, cluster, numberOfCpus)
+            val newMachine = Machine(newMachineId, name, cluster, numberOfCpus, DVFSEnabled, relativeSpeed, TDP)
             _machines.add(newMachine)
             return newMachine
         }

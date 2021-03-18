@@ -17,6 +17,8 @@ class WorkflowStateMonitor(
         private set
     var completedWorkflowCount = 0
         private set
+    var energyConsumed = 0
+    private set
 
     init {
         registerEventHandler(EventType.WORKFLOW_SUBMITTED, this::workflowSubmitted)

@@ -10,15 +10,18 @@ class Task(
         val workflow: Workflow?,
         val runTime: Ticks,
         val submissionTime: Ticks,
+        val slack: Ticks,
         val cpuDemand: Int
 ) {
 
     private val _dependencies = mutableSetOf<Task>()
     val dependencies: Set<Task>
         get() = _dependencies
+    var energyConsumed: Long
 
     init {
         workflow?.addTask(this)
+        energyConsumed = -1
     }
 
     fun addDependency(task: Task) {

@@ -13,8 +13,12 @@ data class CliValues(
         val tracePath: Path,
         val resultPath: Path?,
         val machines: Int?,
-        val cores: Int?,
+        val cores: List<Int>?,
+        val dvfsEnabled: List<Boolean>?,
+        val TDPs: List<Int>?,
+        val baseClock: List<Double>?,
         val targetUtilization: Double?,
+        val machineFractions: List<Double>?,
         val sampleFraction: Double?,
         val traceReader: TraceReader,
         val taskPlacementPolicy: TaskPlacementPolicy,
@@ -33,8 +37,12 @@ fun parseCliArgs(args: Array<String>): CliValues {
         val sampleFraction = cmd.getOptionDoubleOrNull(CliOptions.sampleFraction)
         val resultPathStr = cmd.getOptionStringOrNull(CliOptions.resultDir)
         val machines = cmd.getOptionIntOrNull(CliOptions.machines)
-        val cores = cmd.getOptionIntOrNull(CliOptions.cores)
+        val cores = cmd.getIntArrayOrNull(CliOptions.cores)
+        val baseClocks = cmd.getDoubleArrayOrNull(CliOptions.cores)
+        val dvfsEnabled = cmd.getBooleanArrayOrNull(CliOptions.dvfsEnabled)
+        val TDPs = cmd.getIntArrayOrNull(CliOptions.TDPs)
         val targetUtilization = cmd.getOptionDoubleOrNull(CliOptions.targetUtilization)
+        val machineFractions = cmd.getDoubleArrayOrNull(CliOptions.machineFractions)
         val taskPlacementPolicyStr = cmd.getOptionStringOrNull(CliOptions.taskPlacementPolicy)
         val taskOrderPolicyStr = cmd.getOptionStringOrNull(CliOptions.taskOrderPolicy)
 
@@ -53,13 +61,27 @@ fun parseCliArgs(args: Array<String>): CliValues {
             throw ParseException("A non-negative number of machines is required (was: $machines)")
         if (targetUtilization != null && (targetUtilization <= 0 || targetUtilization > 1))
             throw ParseException("Target utilization must be in the range (0, 1], was: $targetUtilization")
-        if (cores != null && cores <= 0)
-            throw ParseException("A non-negative number of cores is required (was: $cores)")
+        if(cores == null)
+            throw ParseException("Need to supply core sizes")
+        if (cores.isEmpty())
+            throw ParseException("Need to supply core sizes")
+        if (cores.min()!! <= 0)
+            throw ParseException("A non-negative number of cores is required (was: ${cores.min()})")
+        if(baseClocks == null)
+            throw ParseException("Need to supply base clocks")
+        if (baseClocks.isEmpty())
+            throw ParseException("Need to supply base clock speeds")
+        if (baseClocks.min()!! <= 0)
+            throw ParseException("A non-negative number of base clock is required (was: ${cores.min()})")
+        if(baseClocks.size != cores.size)
+            throw ParseException("Cores and base clock list sizes mismatch: ${cores.size} vs ${baseClocks.size}")
+        if(TDPs != null && TDPs.size != cores.size)
+            throw ParseException("Cores and TDPs list sizes mismatch: ${cores.size} vs ${TDPs.size}")
         // - Scheduler configuration
         val taskPlacementPolicy = parseTaskPlacementPolicy(taskPlacementPolicyStr)
         val taskOrderPolicy = parseTaskOrderPolicy(taskOrderPolicyStr)
 
-        return CliValues(tracePath, resultPath, machines, cores, targetUtilization, sampleFraction, traceReader,
+        return CliValues(tracePath, resultPath, machines, cores, dvfsEnabled, TDPs, baseClocks, targetUtilization, machineFractions, sampleFraction, traceReader,
                 taskPlacementPolicy, taskOrderPolicy)
     } catch (e: ParseException) {
         println(e.message)
@@ -142,14 +164,38 @@ private object CliOptions {
 
     val cores: Option = Option.builder("c")
             .longOpt("cores")
-            .hasArg()
-            .desc("number of cores per simulated machine")
+            .hasArgs() // Note: not arg but argS -- multiple allowed.
+            .desc("List of number of cores per simulated machine")
+            .build()
+
+    val dvfsEnabled: Option = Option.builder("e")
+            .longOpt("dvfs")
+            .hasArgs() // dvfs enabled per machine
+            .desc("List of dynamic voltage scaling enabled per machine")
+            .build()
+
+    val TDPs: Option = Option.builder("t")
+            .longOpt("tdp")
+            .hasArgs() // dvfs enabled per machine
+            .desc("List of TDP value per machine")
+            .build()
+
+    val baseClocks: Option = Option.builder("s")
+            .longOpt("base-clocks")
+            .hasArgs() // dvfs enabled per machine
+            .desc("List of base clock speed per machine")
             .build()
 
     val targetUtilization: Option = Option.builder()
             .longOpt("target-utilization")
             .hasArg()
             .desc("target average utilization per machine")
+            .build()
+
+    val machineFractions: Option = Option.builder()
+            .longOpt("machine-fractions")
+            .hasArgs()
+            .desc("target fraction of the resource pool per machine")
             .build()
 
     val sampleFraction: Option = Option.builder()
@@ -177,6 +223,9 @@ private object CliOptions {
         addOption(resultDir)
         addOption(machines)
         addOption(cores)
+        addOption(dvfsEnabled)
+        addOption(TDPs)
+        addOption(baseClocks)
         addOption(targetUtilization)
         addOption(taskPlacementPolicy)
         addOption(taskOrderPolicy)
@@ -202,6 +251,11 @@ private fun CommandLine.getOptionIntOrNull(opt: Option): Int? {
     return this.getOptionInt(opt)
 }
 
+private fun CommandLine.getOptionBoolean(opt: Option): Boolean {
+    if (!this.hasOption(opt.longOpt)) return false
+    return this.getOptionString(opt).toLowerCase() == "true"
+}
+
 private fun CommandLine.getOptionDouble(opt: Option): Double {
     val str = this.getOptionString(opt)
     return str.toDoubleOrNull()
@@ -211,4 +265,33 @@ private fun CommandLine.getOptionDouble(opt: Option): Double {
 private fun CommandLine.getOptionDoubleOrNull(opt: Option): Double? {
     if (!this.hasOption(opt.longOpt)) return null
     return this.getOptionDouble(opt)
+}
+
+private fun CommandLine.getIntArrayOrNull(opt: Option): List<Int>? {
+    if (!this.hasOption(opt.longOpt)) return null
+    return this.getOptionValues(opt.longOpt).map { s -> parse<Int>(s) }
+}
+
+private fun CommandLine.getDoubleArrayOrNull(opt: Option): List<Double>? {
+    if (!this.hasOption(opt.longOpt)) return null
+    return this.getOptionValues(opt.longOpt).map { s -> parse<Double>(s) }
+}
+
+private fun CommandLine.getBooleanArrayOrNull(opt: Option): List<Boolean>? {
+    if (!this.hasOption(opt.longOpt)) return null
+    return this.getOptionValues(opt.longOpt).map { s -> parse<Boolean>(s) }
+}
+
+
+inline fun <reified T> parse(s: String) : T {
+    return when (T::class) {
+        Int::class -> s.toInt() as T
+        Long::class -> s.toLong() as T
+        Double::class -> s.toDouble() as T
+        Float::class -> s.toFloat() as T
+        Boolean::class -> s.toBoolean() as T
+        String::class -> s as T
+        // add other types here if need
+        else -> throw IllegalStateException("Unknown Generic Type")
+    }
 }

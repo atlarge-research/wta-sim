@@ -8,8 +8,8 @@ class Machine(
         val cluster: Cluster,
         val numberOfCpus: Int,
         val dvfsEnabled: Boolean,
-        val GHz: Double,
-        val TDP: Int
+        val speedFactor: Double,
+        val PowerConsumption: Int
 ) {
 
     init {

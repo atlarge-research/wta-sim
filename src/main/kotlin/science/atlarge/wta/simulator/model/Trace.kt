@@ -36,7 +36,7 @@ class Trace {
         }
         synchronized(_tasks) {
             val newTaskId = _tasks.size
-            val newTask = Task(newTaskId, taskName, workflow, runTime, submissionTime, cpuDemand)
+            val newTask = Task(newTaskId, taskName, workflow, runTime, submissionTime, 0, cpuDemand)
             _tasks.add(newTask)
             return newTask
         }

@@ -23,6 +23,8 @@ class TaskStateMonitor(
         private set
     var completedTaskCount = 0
         private set
+    var energyConsumed: Long = 0
+        private set
 
     private val reverseDependencies: Array<Array<Task>>
 
@@ -107,6 +109,7 @@ class TaskStateMonitor(
         // Update counters
         runningTaskCount--
         completedTaskCount++
+        energyConsumed += task.energyConsumed
         // Check if an all-tasks-completed event should be emitted
         if (completedTaskCount == taskCount) {
             eventQueue.submit(AllTasksCompletedEvent(event.time))
