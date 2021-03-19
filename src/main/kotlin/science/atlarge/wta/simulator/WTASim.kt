@@ -128,15 +128,6 @@ object WTASim {
         println("Trace duration: ${traceEndTime - traceStartTime}")
         println("Total CPU usage (cpus * ticks): $totalResourceUsage")
         println("Average CPU usage: ${totalResourceUsage.toBigDecimal().divide(BigDecimal.valueOf(traceEndTime - traceStartTime), 2, RoundingMode.HALF_UP)}")
-//            println("Machines needed for ${cli.targetUtilization} utilization: $numMachines")
-//        }
-//
-//        val environment = Environment().apply {
-//            val cluster = createCluster("Cluster")
-//            repeat(numMachines) { i ->
-//                createMachine("Machine${i + 1}", cluster, resourcesPerMachine, dvfsEnabled, )
-//            }
-//        }
 
         println("--- ENVIRONMENT STATS ---")
         println("Number of machines: ${environment.machines.size}")

@@ -7,7 +7,7 @@ class MachineState internal constructor(
         val machine: Machine,
         freeCpus: Int,
         dvfsEnabled: Boolean,
-        GHz: Double,
+        speedFactor: Double,
         TDP: Int
 ) {
 
@@ -18,7 +18,7 @@ class MachineState internal constructor(
     val runningTasks: Set<Task>
         get() = _runningTasks
 
-    constructor(machine: Machine) : this(machine, machine.numberOfCpus, machine.dvfsEnabled, machine.GHz, machine.TDP)
+    constructor(machine: Machine) : this(machine, machine.numberOfCpus, machine.dvfsEnabled, machine.speedFactor, machine.TDP)
 
     fun submitTask(task: Task) {
         require(task.cpuDemand <= freeCpus) {

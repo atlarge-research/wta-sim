@@ -144,6 +144,62 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         // Read each parquet file to extract task information
         val taskRecords = arrayListOf<WTATaskRecord>()
         for (parquetFile in parquetFiles) {
+
+            // Prepare a filter to only select tasks that match the workflow filter
+            val filter = FilterCompat.get(ColumnRecordFilter.column("workflow_id",
+                    ColumnPredicates.applyFunctionToLong { workflowId -> workflowId in workflowFilter }))
+
+            // Get the workflow slack data
+            // TODO read slack and add it to task
+            var slack = HashMap<Long, Long>()
+
+            val slackReader = ParquetFileReader.open(HadoopInputFile.fromPath(
+                    HPath(parquetFile.absolutePath), Configuration()))
+            val slackSchema = slackReader.fileMetaData.schema
+            while (true) {
+                // Get the next row group and construct a record reader
+                val rowGroup = slackReader.readNextRowGroup() ?: break
+                val columnIO = ColumnIOFactory().getColumnIO(slackSchema)
+                val recordReader = columnIO.getRecordReader(rowGroup, GroupRecordConverter(slackSchema), filter)
+
+                // Read all rows for the group
+                val rowCount = rowGroup.rowCount
+                var rowsRead = 0L
+                while (rowsRead < rowCount) {
+                    // Try reading the next record
+                    val record = recordReader.read()
+                    rowsRead++
+
+                    // Skip the record if it was filtered out
+                    if (recordReader.shouldSkipCurrentRecord()) {
+                        continue
+                    }
+                    // If no record was read, we reached the end of the group
+                    if (record == null) {
+                        break
+                    }
+
+                    // Parse the record and add it
+                    val taskId = record.getLong("id", 0)
+                    val workflowId = record.getLong("workflow_id", 0)
+                    val submitTime = record.getLong("ts_submit", 0)
+                    val runTime = record.getLong("runtime", 0)
+                    val cores = record.getDouble("resource_amount_requested", 0).roundToInt()
+                    val TMP = record.getDouble("resource_amount_requested", 0)
+                    if (TMP != cores.toDouble()) {
+                        println("Non-integer cores: $TMP")
+                    }
+                    val dependenciesGroup = record.getGroup("parents", 0)
+                    val dependencyCount = dependenciesGroup.getFieldRepetitionCount(0)
+                    val dependencies = LongArray(dependencyCount) { i ->
+                        dependenciesGroup.getGroup(0, i).getLong(0, 0)
+                    }
+
+                    taskRecords.add(WTATaskRecord(workflowId, taskId, submitTime, runTime, cores, dependencies))
+                }
+            }
+
+
             // Open the parquet file and extract its schema
             val parquetReader = ParquetFileReader.open(HadoopInputFile.fromPath(
                     HPath(parquetFile.absolutePath), Configuration()))
@@ -158,9 +214,6 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                 val missingFields = fieldsToSelect.filter { f -> partialSchema.fields.none { it.name == f } }
                 "Missing fields in workflow schema: ${missingFields.joinToString()}"
             }
-            // Prepare a filter to only select tasks that match the workflow filter
-            val filter = FilterCompat.get(ColumnRecordFilter.column("workflow_id",
-                    ColumnPredicates.applyFunctionToLong { workflowId -> workflowId in workflowFilter }))
 
             // Read row groups from the parquet file
             while (true) {

@@ -9,7 +9,7 @@ class Machine(
         val numberOfCpus: Int,
         val dvfsEnabled: Boolean,
         val speedFactor: Double,
-        val PowerConsumption: Int
+        val TDP: Int
 ) {
 
     init {
