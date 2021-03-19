@@ -4,13 +4,14 @@ import science.atlarge.wta.simulator.model.Machine
 import science.atlarge.wta.simulator.model.Task
 
 class MachineState internal constructor(
-        val machine: Machine,
-        freeCpus: Int,
-        dvfsEnabled: Boolean,
-        speedFactor: Double,
-        TDP: Int
+    val machine: Machine,
+    freeCpus: Int,
+    dvfsEnabled: Boolean,
+    speedFactor: Double,
+    powerEfficiency: Double
 ) {
 
+    val powerEfficiency = powerEfficiency
     var freeCpus = freeCpus
         private set
 
@@ -18,7 +19,7 @@ class MachineState internal constructor(
     val runningTasks: Set<Task>
         get() = _runningTasks
 
-    constructor(machine: Machine) : this(machine, machine.numberOfCpus, machine.dvfsEnabled, machine.speedFactor, machine.TDP)
+    constructor(machine: Machine) : this(machine, machine.numberOfCpus, machine.dvfsEnabled, machine.speedFactor, machine.powerEfficiency)
 
     fun submitTask(task: Task) {
         require(task.cpuDemand <= freeCpus) {

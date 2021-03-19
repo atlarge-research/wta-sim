@@ -11,9 +11,11 @@ class Machine(
         val speedFactor: Double,
         val TDP: Int
 ) {
+    var powerEfficiency: Double
 
     init {
         cluster.addMachine(this)
+        powerEfficiency = (TDP / numberOfCpus) * speedFactor
     }
 
     override fun equals(other: Any?): Boolean {

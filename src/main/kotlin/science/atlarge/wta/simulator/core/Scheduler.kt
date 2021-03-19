@@ -42,6 +42,11 @@ class Scheduler(
             return clusterManager.machineStatesByAscendingFreeCpu(minimumFreeCpu)
         }
 
+        override fun getMachineStatesByAscendingEnergyEfficiency(minimumFreeCpu: Int): Iterator<MachineState> {
+            return clusterManager.machineStatesByAscendingEnergyEfficiency(minimumFreeCpu)
+
+        }
+
         override fun getMachineStatesByDescendingFreeCpu(): Iterator<MachineState> {
             return clusterManager.machineStatesByDescendingFreeCpu()
         }

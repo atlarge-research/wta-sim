@@ -20,6 +20,8 @@ interface AllocationCallbacks {
 
     fun getMachineStatesByAscendingFreeCpu(minimumFreeCpu: Int): Iterator<MachineState>
 
+    fun getMachineStatesByAscendingEnergyEfficiency(minimumFreeCpu: Int): Iterator<MachineState>
+
     fun getMachineStatesByDescendingFreeCpu(): Iterator<MachineState>
 
 }

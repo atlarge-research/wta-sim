@@ -16,10 +16,9 @@ class LookAheadPlacement : TaskPlacementPolicy {
             val task = eligibleTasks.next()
 
             // Get a list of machines that can fit this task, in ascending order of available resources
-            val machineStates = callbacks.getMachineStatesByAscendingFreeCpu(task.cpuDemand)
+            val machineStates = callbacks.getMachineStatesByAscendingEnergyEfficiency(task.cpuDemand)
             while (machineStates.hasNext()) {
                 // Try to place it on the next machine
-                // NOTE: Currently always works, because there are no other requirements than number of free resources
                 val machineState = machineStates.next()
                 callbacks.scheduleTask(task, machineState.machine)
                 totalFreeCpu -= task.cpuDemand
