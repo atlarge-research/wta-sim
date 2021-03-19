@@ -193,12 +193,10 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                         val taskId = record.getLong("task_id", 0)
                         val workflowId = record.getLong("workflow_id", 0)
                         val taskSlack = record.getLong("task_slack", 0)
-                        slack.getOrDefault(workflowId, HashMap())[taskId] = taskSlack
+                        slack.getOrPut(workflowId, {HashMap()})[taskId] = taskSlack
                     }
                 }
             }
-
-            println(slack.size)
 
             // Open the parquet file and extract its schema
             val parquetReader = ParquetFileReader.open(HadoopInputFile.fromPath(
