@@ -29,6 +29,7 @@ class Trace {
             workflow: Workflow?,
             runTime: Ticks,
             submissionTime: Ticks,
+            slack: Long,
             cpuDemand: Int
     ): Task {
         require(workflow == null || checkWorkflowExists(workflow)) {
@@ -36,7 +37,7 @@ class Trace {
         }
         synchronized(_tasks) {
             val newTaskId = _tasks.size
-            val newTask = Task(newTaskId, taskName, workflow, runTime, submissionTime, 0, cpuDemand)
+            val newTask = Task(newTaskId, taskName, workflow, runTime, submissionTime, slack, cpuDemand)
             _tasks.add(newTask)
             return newTask
         }

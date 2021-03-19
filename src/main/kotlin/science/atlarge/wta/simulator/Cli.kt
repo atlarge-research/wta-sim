@@ -180,19 +180,19 @@ private object CliOptions {
             .desc("List of TDP value per machine")
             .build()
 
-    val baseClocks: Option = Option.builder("s")
+    val baseClocks: Option = Option.builder("bc")
             .longOpt("base-clocks")
             .hasArgs() // dvfs enabled per machine
             .desc("List of base clock speed per machine")
             .build()
 
-    val targetUtilization: Option = Option.builder()
+    val targetUtilization: Option = Option.builder("tu")
             .longOpt("target-utilization")
             .hasArg()
             .desc("target average utilization per machine")
             .build()
 
-    val machineFractions: Option = Option.builder()
+    val machineFractions: Option = Option.builder("mf")
             .longOpt("machine-fractions")
             .hasArgs()
             .desc("target fraction of the resource pool per machine")
@@ -227,6 +227,7 @@ private object CliOptions {
         addOption(TDPs)
         addOption(baseClocks)
         addOption(targetUtilization)
+        addOption(machineFractions)
         addOption(taskPlacementPolicy)
         addOption(taskOrderPolicy)
     }

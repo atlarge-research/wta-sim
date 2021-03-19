@@ -16,6 +16,7 @@ import org.apache.parquet.schema.PrimitiveType
 import science.atlarge.wta.simulator.model.Ticks
 import science.atlarge.wta.simulator.model.Trace
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import org.apache.hadoop.fs.Path as HPath
@@ -150,55 +151,54 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                     ColumnPredicates.applyFunctionToLong { workflowId -> workflowId in workflowFilter }))
 
             // Get the workflow slack data
-            // TODO read slack and add it to task
-            var slack = HashMap<Long, Long>()
+            val slack = HashMap<Long, HashMap<Long, Long>>()
+            val folder_name = parquetFile.parentFile.parentFile.parentFile.name
+                .replace("_parquet", "_slack.parquet")
+            val slack_folder = "C:/Users/L/Documents/vu/wta-sim/slack"
 
-            val slackReader = ParquetFileReader.open(HadoopInputFile.fromPath(
-                    HPath(parquetFile.absolutePath), Configuration()))
-            val slackSchema = slackReader.fileMetaData.schema
-            while (true) {
-                // Get the next row group and construct a record reader
-                val rowGroup = slackReader.readNextRowGroup() ?: break
-                val columnIO = ColumnIOFactory().getColumnIO(slackSchema)
-                val recordReader = columnIO.getRecordReader(rowGroup, GroupRecordConverter(slackSchema), filter)
+            val slackFiles = Paths.get(slack_folder, folder_name).flatMap { p ->
+                p.toFile().walk().filter { f ->
+                    f.isFile && f.extension == "parquet"
+                }.toList()
+            }
 
-                // Read all rows for the group
-                val rowCount = rowGroup.rowCount
-                var rowsRead = 0L
-                while (rowsRead < rowCount) {
-                    // Try reading the next record
-                    val record = recordReader.read()
-                    rowsRead++
+            for (f in slackFiles) {
+                val slackReader = ParquetFileReader.open(HadoopInputFile.fromPath(
+                    HPath(f.absolutePath), Configuration()))
+                val slackSchema = slackReader.fileMetaData.schema
+                while (true) {
+                    // Get the next row group and construct a record reader
+                    val rowGroup = slackReader.readNextRowGroup() ?: break
+                    val columnIO = ColumnIOFactory().getColumnIO(slackSchema)
+                    val recordReader = columnIO.getRecordReader(rowGroup, GroupRecordConverter(slackSchema), filter)
 
-                    // Skip the record if it was filtered out
-                    if (recordReader.shouldSkipCurrentRecord()) {
-                        continue
+                    // Read all rows for the group
+                    val rowCount = rowGroup.rowCount
+                    var rowsRead = 0L
+                    while (rowsRead < rowCount) {
+                        // Try reading the next record
+                        val record = recordReader.read()
+                        rowsRead++
+
+                        // Skip the record if it was filtered out
+                        if (recordReader.shouldSkipCurrentRecord()) {
+                            continue
+                        }
+                        // If no record was read, we reached the end of the group
+                        if (record == null) {
+                            break
+                        }
+
+                        // Parse the record and add it
+                        val taskId = record.getLong("task_id", 0)
+                        val workflowId = record.getLong("workflow_id", 0)
+                        val taskSlack = record.getLong("task_slack", 0)
+                        slack.getOrDefault(workflowId, HashMap())[taskId] = taskSlack
                     }
-                    // If no record was read, we reached the end of the group
-                    if (record == null) {
-                        break
-                    }
-
-                    // Parse the record and add it
-                    val taskId = record.getLong("id", 0)
-                    val workflowId = record.getLong("workflow_id", 0)
-                    val submitTime = record.getLong("ts_submit", 0)
-                    val runTime = record.getLong("runtime", 0)
-                    val cores = record.getDouble("resource_amount_requested", 0).roundToInt()
-                    val TMP = record.getDouble("resource_amount_requested", 0)
-                    if (TMP != cores.toDouble()) {
-                        println("Non-integer cores: $TMP")
-                    }
-                    val dependenciesGroup = record.getGroup("parents", 0)
-                    val dependencyCount = dependenciesGroup.getFieldRepetitionCount(0)
-                    val dependencies = LongArray(dependencyCount) { i ->
-                        dependenciesGroup.getGroup(0, i).getLong(0, 0)
-                    }
-
-                    taskRecords.add(WTATaskRecord(workflowId, taskId, submitTime, runTime, cores, dependencies))
                 }
             }
 
+            println(slack.size)
 
             // Open the parquet file and extract its schema
             val parquetReader = ParquetFileReader.open(HadoopInputFile.fromPath(
@@ -254,8 +254,9 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                     val dependencies = LongArray(dependencyCount) { i ->
                         dependenciesGroup.getGroup(0, i).getLong(0, 0)
                     }
+                    val taskSlack = slack.get(workflowId)!!.get(taskId) ?: 0
 
-                    taskRecords.add(WTATaskRecord(workflowId, taskId, submitTime, runTime, cores, dependencies))
+                    taskRecords.add(WTATaskRecord(workflowId, taskId, submitTime, runTime, cores, dependencies, taskSlack))
                 }
             }
         }
@@ -293,7 +294,7 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         // Create tasks
         for (task in tasks) {
             val workflow = if (task.workflowId != null) trace.getWorkflowByName(task.workflowId.toString()) else null
-            trace.createTask(task.taskId.toString(), workflow, task.runTime, task.submitTime, task.cores)
+            trace.createTask(task.taskId.toString(), workflow, task.runTime, task.submitTime,task.slack, task.cores)
         }
         // Add dependencies
         for (taskRecord in tasks) {
@@ -327,5 +328,6 @@ private class WTATaskRecord(
         val submitTime: Ticks,
         val runTime: Ticks,
         val cores: Int,
-        val dependencies: LongArray
+        val dependencies: LongArray,
+        val slack: Long
 )
