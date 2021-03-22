@@ -75,12 +75,12 @@ class TaskStatsCollector(
         for (dep in event.task.dependencies) {
             earliestTaskStart = maxOf(earliestTaskStart, earliestCompletionTimeOf(dep))
         }
-        taskEarliestCompletionTimes[event.task.id] = earliestTaskStart + event.task.runTime
+        taskEarliestCompletionTimes[event.task.id] = earliestTaskStart + event.task.originalRuntime
     }
 
     fun writeToFile(outputFile: File) {
         outputFile.bufferedWriter().use { writer ->
-            writer.appendln("task.id\tworkflow.id\ttime.submit\ttime.ready\ttime.start\ttime.complete\ttime.earliest.complete")
+            writer.appendln("task.id\tworkflow.id\ttime.submit\ttime.ready\ttime.start\ttime.complete\ttime.runtime.original\ttime.runtime.actual")
             for (task in trace.tasks) {
                 writer.append(task.id.toString())
                         .append('\t')
@@ -94,7 +94,9 @@ class TaskStatsCollector(
                         .append('\t')
                         .append(completionTimeOf(task).toString())
                         .append('\t')
-                        .append(earliestCompletionTimeOf(task).toString())
+                        .append(task.originalRuntime.toString())
+                        .append('\t')
+                        .append(task.runTime.toString())
                         .appendln()
             }
         }

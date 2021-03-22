@@ -15,7 +15,7 @@ class Machine(
 
     init {
         cluster.addMachine(this)
-        powerEfficiency = (TDP / numberOfCpus) * speedFactor
+        powerEfficiency = (TDP / numberOfCpus) / speedFactor
     }
 
     override fun equals(other: Any?): Boolean {

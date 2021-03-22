@@ -22,14 +22,13 @@ class LookAheadPlacement : TaskPlacementPolicy {
                 // Try to place it on the next machine
                 val machineState = machineStates.next()
                 // Check if the machine is too slow
-                if (machineState.speedFactor * task.runTime > task.runTime + task.slack) {
+                if (task.runTime / machineState.speedFactor > task.runTime + task.slack) {
                     continue
                 }
 
-                val originalRuntime = task.runTime
                 // At this point we know that we have the most power efficient machine
                 // Update the runtime and power consumption
-                task.runTime = ceil(task.runTime * machineState.speedFactor).toLong()
+                task.runTime = ceil(task.runTime / machineState.speedFactor).toLong()
                 task.energyConsumed = (task.runTime * machineState.TDP).toDouble()
 
                 // Check if DVFS is enabled to see if we can get further gains
@@ -37,7 +36,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
                     val additionalSlowdown =
                         machineState.dvfsOptions.floorKey(
                             // Key = leftover slack + runtime / runtime
-                            ((originalRuntime + task.slack - task.runTime + task.runTime)
+                            ((task.originalRuntime + task.slack - task.runTime + task.runTime)
                                     / task.runTime).toDouble()
                         )
                     task.runTime = ceil(task.runTime * additionalSlowdown).toLong()

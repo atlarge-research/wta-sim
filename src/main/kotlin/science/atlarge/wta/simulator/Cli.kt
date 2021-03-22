@@ -38,7 +38,7 @@ fun parseCliArgs(args: Array<String>): CliValues {
         val resultPathStr = cmd.getOptionStringOrNull(CliOptions.resultDir)
         val machines = cmd.getOptionIntOrNull(CliOptions.machines)
         val cores = cmd.getIntArrayOrNull(CliOptions.cores)
-        val baseClocks = cmd.getDoubleArrayOrNull(CliOptions.cores)
+        val baseClocks = cmd.getDoubleArrayOrNull(CliOptions.baseClocks)
         val dvfsEnabled = cmd.getBooleanArrayOrNull(CliOptions.dvfsEnabled)
         val TDPs = cmd.getIntArrayOrNull(CliOptions.TDPs)
         val targetUtilization = cmd.getOptionDoubleOrNull(CliOptions.targetUtilization)

@@ -54,7 +54,7 @@ object WTASim {
     }
 
     private fun constructEnvironment(cli: CliValues, trace: Trace): Environment {
-        var resourcesPerMachine = cli.cores ?: listOf(1)
+        val resourcesPerMachine = cli.cores ?: listOf(1)
         val baseClocks = cli.baseClock ?: List(resourcesPerMachine.size){2.0}
         val dvfsEnabled = cli.dvfsEnabled ?: List(resourcesPerMachine.size){false}
 //        val numMachines: Int

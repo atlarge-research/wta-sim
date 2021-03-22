@@ -18,10 +18,12 @@ class Task(
     val dependencies: Set<Task>
         get() = _dependencies
     var energyConsumed: Double // In milli joules due to runtimes being in milliseconds * Watt
+    val originalRuntime: Ticks
 
     init {
         workflow?.addTask(this)
         energyConsumed = -1.0
+        originalRuntime = runTime
     }
 
     fun addDependency(task: Task) {
