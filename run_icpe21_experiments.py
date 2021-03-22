@@ -23,8 +23,12 @@ for folder in next(os.walk(trace_dir))[1]:
     if folder == "alibaba_from_flat":
         continue  # Do not load the entire alibaba trace, too much.
 
+    if "google" in str(folder).lower(): continue
+    if "lanl" in str(folder).lower(): continue
+    if "two_sigma" in str(folder).lower(): continue
+
     for tu, tsp, tpp, dvfs in itertools.product(target_utilizations, task_selection_policies,
-                                                        task_placement_policies, dvfs_enabled):
+                                                task_placement_policies, dvfs_enabled):
         output_dir = os.path.join(output_location, f"{folder}_tu_{tu}_tsp_{tsp}_tpp_{tpp}_dvfs_{dvfs}")
         if os.path.exists(output_dir):
             continue
