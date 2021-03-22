@@ -154,7 +154,7 @@ class WTAReader : TraceReader(), SamplingTraceReader {
             val slack = HashMap<Long, HashMap<Long, Long>>()
             val folder_name = parquetFile.parentFile.parentFile.parentFile.name
                 .replace("_parquet", "_slack.parquet")
-            val slack_folder = "C:/Users/L/Documents/vu/wta-sim/slack"
+            val slack_folder = "/var/scratch/lvs215/ic2e-wta-output/look_ahead"
 
             val slackFiles = Paths.get(slack_folder, folder_name).flatMap { p ->
                 p.toFile().walk().filter { f ->
