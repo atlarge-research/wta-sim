@@ -47,6 +47,10 @@ class SimulationSummary(
         return DoubleArray(trace.tasks.size) { i -> trace.tasks[i].runTime.toDouble() }
     }
 
+    private fun extractTaskEnergyConsumption(): DoubleArray {
+        return DoubleArray(trace.tasks.size) { i -> trace.tasks[i].energyConsumed }
+    }
+
     private fun extractTaskWaitTimes(): DoubleArray {
         return DoubleArray(trace.tasks.size) { i ->
             val task = trace.tasks[i]
@@ -121,6 +125,8 @@ class SimulationSummary(
                     Math.pow(10.0, e.toDouble()))
             writeMetric("Task Bounded Slowdown (1e$e Ticks)", boundedSlowdowns)
         }
+        // - Task energy consumption
+        writeMetric("Task Energy Consumption", extractTaskEnergyConsumption())
 
         // - Workflow schedule length (= completion time - start time)
         val workflowScheduleLengths = extractWorkflowScheduleLengths()
