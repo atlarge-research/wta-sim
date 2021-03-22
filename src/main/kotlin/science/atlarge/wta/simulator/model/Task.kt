@@ -5,23 +5,23 @@ import java.util.*
 typealias TaskId = Int
 
 class Task(
-        val id: TaskId,
-        val name: String,
-        val workflow: Workflow?,
-        val runTime: Ticks,
-        val submissionTime: Ticks,
-        val slack: Ticks,
-        val cpuDemand: Int
+    val id: TaskId,
+    val name: String,
+    val workflow: Workflow?,
+    var runTime: Ticks,
+    val submissionTime: Ticks,
+    val slack: Ticks,
+    val cpuDemand: Int
 ) {
 
     private val _dependencies = mutableSetOf<Task>()
     val dependencies: Set<Task>
         get() = _dependencies
-    var energyConsumed: Long
+    var energyConsumed: Double // In milli joules due to runtimes being in milliseconds * Watt
 
     init {
         workflow?.addTask(this)
-        energyConsumed = -1
+        energyConsumed = -1.0
     }
 
     fun addDependency(task: Task) {

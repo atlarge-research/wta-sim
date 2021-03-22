@@ -47,11 +47,11 @@ class ClusterManager(
     }
 
     fun machineStatesByAscendingFreeCpu(minimumFreeCpu: Int): Iterator<MachineState> {
-        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, minimumFreeCpu, false, 1.0, 0.0))
+        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, minimumFreeCpu, 1, false, 1.0, 0.0))
     }
 
     fun machineStatesByAscendingEnergyEfficiency (minimumFreeCpu: Int): Iterator<MachineState> {
-        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, minimumFreeCpu, false, 1.0, 0.0))
+        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, minimumFreeCpu, 1, false, 1.0, 0.0))
             .asSequence().sortedBy { it.powerEfficiency }.iterator()
     }
 

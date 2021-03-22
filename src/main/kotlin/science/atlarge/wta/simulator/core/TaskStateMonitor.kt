@@ -23,7 +23,7 @@ class TaskStateMonitor(
         private set
     var completedTaskCount = 0
         private set
-    var energyConsumed: Long = 0
+    var energyConsumed: Double = 0.0
         private set
 
     private val reverseDependencies: Array<Array<Task>>
