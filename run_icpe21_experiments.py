@@ -20,6 +20,9 @@ dvfs_enabled = [True, False]
 subprocess.run("mvn package", shell=True)
 
 for folder in next(os.walk(trace_dir))[1]:
+    if folder == "alibaba_from_flat":
+        continue  # Do not load the entire alibaba trace, too much.
+
     for tu, tsp, tpp, dvfs_enabled in itertools.product(target_utilizations, task_selection_policies,
                                                         task_placement_policies, dvfs_enabled):
         command = "java -cp target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
