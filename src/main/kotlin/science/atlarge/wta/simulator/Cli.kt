@@ -77,6 +77,8 @@ fun parseCliArgs(args: Array<String>): CliValues {
             throw ParseException("Cores and base clock list sizes mismatch: ${cores.size} vs ${baseClocks.size}")
         if(TDPs != null && TDPs.size != cores.size)
             throw ParseException("Cores and TDPs list sizes mismatch: ${cores.size} vs ${TDPs.size}")
+        if(TDPs != null && TDPs.min()!! <= 0)
+            throw ParseException("Must have positive TDP values")
         // - Scheduler configuration
         val taskPlacementPolicy = parseTaskPlacementPolicy(taskPlacementPolicyStr)
         val taskOrderPolicy = parseTaskOrderPolicy(taskOrderPolicyStr)
