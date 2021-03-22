@@ -23,9 +23,9 @@ for folder in next(os.walk(trace_dir))[1]:
     if folder == "alibaba_from_flat":
         continue  # Do not load the entire alibaba trace, too much.
 
-    for tu, tsp, tpp, dvfs_enabled in itertools.product(target_utilizations, task_selection_policies,
+    for tu, tsp, tpp, dvfs in itertools.product(target_utilizations, task_selection_policies,
                                                         task_placement_policies, dvfs_enabled):
-        output_dir = os.path.join(output_location, f"{folder}_tu_{tu}_tsp_{tsp}_tpp_{tpp}_dvfs_{dvfs_enabled}")
+        output_dir = os.path.join(output_location, f"{folder}_tu_{tu}_tsp_{tsp}_tpp_{tpp}_dvfs_{dvfs}")
         if os.path.exists(output_dir):
             continue
         command = "java -cp target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
@@ -33,7 +33,7 @@ for folder in next(os.walk(trace_dir))[1]:
         command += " -t " + " ".join([str(x) for x in machine_tdps])
         command += " -bc " + " ".join([str(x) for x in machine_base_clocks])
         command += " -mf " + " ".join([str(x) for x in machine_fractions])
-        command += " -e " + " ".join([str(x) for x in [dvfs_enabled] * len(machine_resources)])
+        command += " -e " + " ".join([str(x) for x in [dvfs] * len(machine_resources)])
         command += " -i " + os.path.join(trace_dir, folder)
         command += " -o " + output_dir
         command += " --target-utilization " + str(tu)
