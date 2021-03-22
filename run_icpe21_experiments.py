@@ -32,6 +32,8 @@ for folder in next(os.walk(trace_dir))[1]:
         output_dir = os.path.join(output_location, f"{folder}_tu_{tu}_tsp_{tsp}_tpp_{tpp}_dvfs_{dvfs}")
         if os.path.exists(output_dir):
             continue
+
+        print(f"Running {output_dir}")
         command = "java -cp target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
         command += " -c " + " ".join([str(x) for x in machine_resources])
         command += " -t " + " ".join([str(x) for x in machine_tdps])
