@@ -157,6 +157,9 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                 .replace("_parquet", "_slack.parquet")
             val slack_folder = "C:/Users/L/Documents/vu/wta-sim/slack"
 
+            println(folder_name)
+            println(slack_folder)
+
             val slackFiles = Paths.get(slack_folder, folder_name).flatMap { p ->
                 p.toFile().walk().filter { f ->
                     f.isFile && f.extension == "parquet"
