@@ -155,7 +155,7 @@ class WTAReader : TraceReader(), SamplingTraceReader {
             val slack = HashMap<Long, HashMap<Long, Long>>()
             val folder_name = parquetFile.parentFile.parentFile.parentFile.name
                 .replace("_parquet", "_slack.parquet")
-            val slack_folder = "/var/scratch/lvs215/ic2e-wta-output/look_ahead"
+            val slack_folder = "C:/Users/L/Documents/vu/wta-sim/slack"
 
             val slackFiles = Paths.get(slack_folder, folder_name).flatMap { p ->
                 p.toFile().walk().filter { f ->
@@ -253,7 +253,11 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                     val dependencies = LongArray(dependencyCount) { i ->
                         dependenciesGroup.getGroup(0, i).getLong(0, 0)
                     }
-                    val taskSlack = slack.get(workflowId)!!.get(taskId) ?: 0
+
+                    // It may be that some workflow ids are not in the slack computation
+                    // These are Bags of Tasks and were filtered out - Alibaba is known to have these among others
+                    if (!slack.containsKey(workflowId)) continue
+                    val taskSlack = slack[workflowId]!![taskId] ?: 0
                     taskRecords.add(WTATaskRecord(workflowId, taskId, submitTime, runTime, cores, dependencies, taskSlack))
                 }
             }
