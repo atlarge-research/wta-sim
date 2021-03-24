@@ -3,6 +3,7 @@ package science.atlarge.wta.simulator.model
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import java.lang.Long.max
+import kotlin.contracts.contract
 
 typealias WorkflowId = Int
 
@@ -34,19 +35,19 @@ class Workflow(
 
     fun computeMinimalStartTimes() {
         // Toposort to compute the optimal start time
-        val waves = hashSetOf<IntOpenHashSet>()
+        val waves = hashSetOf<HashSet<String>>()
 
-        val depCount = Int2IntOpenHashMap()
-        val children = HashMap<Int, IntOpenHashSet>()
-        _tasks.forEach { p ->
-            depCount[p.id] = p.dependencies.size
-            p.dependencies.forEach {
-                children.getOrPut(it.id) { IntOpenHashSet() }.add(p.id)
+        val depCount = HashMap<String, Int>()
+        val children = HashMap<String, HashSet<String>>()
+        _tasks.forEach { t ->
+            depCount[t.name] = t.dependencies.size
+            t.dependencies.forEach {
+                children.getOrPut(it.name) { HashSet() }.add(t.name)
             }
         }
 
         while (true) {
-            val wave = IntOpenHashSet()
+            val wave = HashSet<String>()
             for ((k, v) in depCount) {
                 if (v == 0) {
                     wave.add(k)
@@ -60,7 +61,9 @@ class Workflow(
             for (t in wave) {
                 depCount.remove(t)
                 children[t]?.forEach { c ->
-                    depCount[c] = depCount[c] - 1
+                    if (depCount.containsKey(c)) {
+                        depCount[c] = depCount[c]!! - 1
+                    }
                 }
             }
             waves.add(wave)
@@ -69,10 +72,12 @@ class Workflow(
         for (wave in waves) {
             // Update all children
             for (t in wave) {
-                val curTask = tasksByName[t.toString()]!!
+                val curTask = tasksByName[t]!!
                 children[t]?.forEach { c ->
-                    val childTask = tasksByName[c.toString()]!!
-                    childTask.earliestStartTime = max(childTask.earliestStartTime, curTask.earliestStartTime + curTask.runTime)
+                    val childTask = tasksByName[c]
+                    if (childTask != null) {
+                        childTask.earliestStartTime = max(childTask.earliestStartTime, curTask.earliestStartTime + curTask.runTime)
+                    }
                 }
             }
         }

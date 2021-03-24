@@ -143,60 +143,59 @@ class WTAReader : TraceReader(), SamplingTraceReader {
             }.toList()
         }
 
+        // Prepare a filter to only select tasks that match the workflow filter
+        val filter = FilterCompat.get(ColumnRecordFilter.column("workflow_id",
+            ColumnPredicates.applyFunctionToLong { workflowId -> workflowId in workflowFilter }))
+
+        // Get the workflow slack data
+        val slack = HashMap<Long, HashMap<Long, Long>>()
+        val folderName = parquetFiles[0].parentFile.parentFile.parentFile.name
+            .replace("_parquet", "_slack.parquet")
+        val slackFolder = "C:/Users/L/Documents/vu/wta-sim/slack"
+
+        val slackFiles = Paths.get(slackFolder, folderName).toFile().walk().filter { f ->
+            f.isFile && f.extension == "parquet"
+        }.toList()
+
+        for (f in slackFiles) {
+            val slackReader = ParquetFileReader.open(HadoopInputFile.fromPath(
+                HPath(f.absolutePath), Configuration()))
+            val slackSchema = slackReader.fileMetaData.schema
+            while (true) {
+                // Get the next row group and construct a record reader
+                val rowGroup = slackReader.readNextRowGroup() ?: break
+                val columnIO = ColumnIOFactory().getColumnIO(slackSchema)
+                val recordReader = columnIO.getRecordReader(rowGroup, GroupRecordConverter(slackSchema), filter)
+
+                // Read all rows for the group
+                val rowCount = rowGroup.rowCount
+                var rowsRead = 0L
+                while (rowsRead < rowCount) {
+                    // Try reading the next record
+                    val record = recordReader.read()
+                    rowsRead++
+
+                    // Skip the record if it was filtered out
+                    if (recordReader.shouldSkipCurrentRecord()) {
+                        continue
+                    }
+                    // If no record was read, we reached the end of the group
+                    if (record == null) {
+                        break
+                    }
+
+                    // Parse the record and add it
+                    val taskId = record.getLong("task_id", 0)
+                    val workflowId = record.getLong("workflow_id", 0)
+                    val taskSlack = record.getLong("task_slack", 0)
+                    slack.getOrPut(workflowId, {HashMap()})[taskId] = taskSlack
+                }
+            }
+        }
+
         // Read each parquet file to extract task information
         val taskRecords = arrayListOf<WTATaskRecord>()
         for (parquetFile in parquetFiles) {
-
-            // Prepare a filter to only select tasks that match the workflow filter
-            val filter = FilterCompat.get(ColumnRecordFilter.column("workflow_id",
-                    ColumnPredicates.applyFunctionToLong { workflowId -> workflowId in workflowFilter }))
-
-            // Get the workflow slack data
-            val slack = HashMap<Long, HashMap<Long, Long>>()
-            val folder_name = parquetFile.parentFile.parentFile.parentFile.name
-                .replace("_parquet", "_slack.parquet")
-            val slack_folder = "C:/Users/L/Documents/vu/wta-sim/slack"
-
-            // TODO make this more efficient, read this stuff in once instead of every task parquet file...
-            val slackFiles = Paths.get(slack_folder, folder_name).toFile().walk().filter { f ->
-                    f.isFile && f.extension == "parquet"
-                }.toList()
-
-            for (f in slackFiles) {
-                val slackReader = ParquetFileReader.open(HadoopInputFile.fromPath(
-                    HPath(f.absolutePath), Configuration()))
-                val slackSchema = slackReader.fileMetaData.schema
-                while (true) {
-                    // Get the next row group and construct a record reader
-                    val rowGroup = slackReader.readNextRowGroup() ?: break
-                    val columnIO = ColumnIOFactory().getColumnIO(slackSchema)
-                    val recordReader = columnIO.getRecordReader(rowGroup, GroupRecordConverter(slackSchema), filter)
-
-                    // Read all rows for the group
-                    val rowCount = rowGroup.rowCount
-                    var rowsRead = 0L
-                    while (rowsRead < rowCount) {
-                        // Try reading the next record
-                        val record = recordReader.read()
-                        rowsRead++
-
-                        // Skip the record if it was filtered out
-                        if (recordReader.shouldSkipCurrentRecord()) {
-                            continue
-                        }
-                        // If no record was read, we reached the end of the group
-                        if (record == null) {
-                            break
-                        }
-
-                        // Parse the record and add it
-                        val taskId = record.getLong("task_id", 0)
-                        val workflowId = record.getLong("workflow_id", 0)
-                        val taskSlack = record.getLong("task_slack", 0)
-                        slack.getOrPut(workflowId, {HashMap()})[taskId] = taskSlack
-                    }
-                }
-            }
 
             // Open the parquet file and extract its schema
             val parquetReader = ParquetFileReader.open(HadoopInputFile.fromPath(
