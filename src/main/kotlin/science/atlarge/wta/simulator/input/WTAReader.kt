@@ -264,7 +264,7 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         }
 
         require(taskRecords.isNotEmpty()) {
-            "Found no tasks in the given trace"
+            "Found no tasks in the given trace ${parquetFiles[0].name} and others"
         }
 
         return taskRecords
