@@ -44,6 +44,7 @@ object WTASim {
             }
         }
         val trace = traceReader.readTraceFromPaths(cli.tracePath)
+        trace.workflows.map { it.computeMinimalStartTimes() }
 
         println("--- ${if (hasSampled) "SAMPLED " else ""}TRACE STATS ---")
         println("Number of tasks: ${trace.tasks.size}")
@@ -55,11 +56,11 @@ object WTASim {
 
     private fun constructEnvironment(cli: CliValues, trace: Trace): Environment {
         val resourcesPerMachine = cli.cores ?: listOf(1)
-        val baseClocks = cli.baseClock ?: List(resourcesPerMachine.size){2.0}
-        val dvfsEnabled = cli.dvfsEnabled ?: List(resourcesPerMachine.size){false}
+        val baseClocks = cli.baseClock ?: List(resourcesPerMachine.size) { 2.0 }
+        val dvfsEnabled = cli.dvfsEnabled ?: List(resourcesPerMachine.size) { false }
 //        val numMachines: Int
-        val TDPs = cli.TDPs ?: List(resourcesPerMachine.size){0}
-        val machineFractions = cli.machineFractions ?: List(resourcesPerMachine.size){1.0 / resourcesPerMachine.size}
+        val TDPs = cli.TDPs ?: List(resourcesPerMachine.size) { 0 }
+        val machineFractions = cli.machineFractions ?: List(resourcesPerMachine.size) { 1.0 / resourcesPerMachine.size }
 
         // Check if the given number of CPUs per machine is sufficient
         val maxResourcesUsed = trace.tasks.map { it.cpuDemand }.max()!!
@@ -79,9 +80,9 @@ object WTASim {
 //            numMachines = cli.machines
 //
 //        } else {
-            println("--- CONSTRUCTING ENVIRONMENT WITH TARGET UTILIZATION OF ${cli.targetUtilization} ---")
+        println("--- CONSTRUCTING ENVIRONMENT WITH TARGET UTILIZATION OF ${cli.targetUtilization} ---")
 
-            // Compute the earliest end time of each task to find the "duration" of the trace
+        // Compute the earliest end time of each task to find the "duration" of the trace
         val taskEarliestEndTimes = LongArray(trace.tasks.size) { Long.MIN_VALUE }
         val taskDepCount = IntArray(trace.tasks.size) { i -> trace.tasks[i].dependencies.size }
         val reverseTaskDeps = Array(trace.tasks.size) { mutableSetOf<Int>() }
@@ -113,21 +114,34 @@ object WTASim {
             repeat(resourcesPerMachine.size) { i ->
                 val cluster = createCluster("Cluster ${i + 1}")
                 val numMachines = totalResourceUsage.toBigDecimal().divide(
-                        BigDecimal.valueOf(traceEndTime - traceStartTime)
-                                .multiply(BigDecimal.valueOf(resourcesPerMachine[i].toLong())) // number of resources
-                                .multiply(BigDecimal.valueOf(cli.targetUtilization!!)) // target util
-                                .multiply(BigDecimal.valueOf(machineFractions[i])), // Fraction of this machine
-                        32, RoundingMode.CEILING).setScale(0, RoundingMode.CEILING).intValueExact()
+                    BigDecimal.valueOf(traceEndTime - traceStartTime)
+                        .multiply(BigDecimal.valueOf(resourcesPerMachine[i].toLong())) // number of resources
+                        .multiply(BigDecimal.valueOf(cli.targetUtilization!!)) // target util
+                        .multiply(BigDecimal.valueOf(machineFractions[i])), // Fraction of this machine
+                    32, RoundingMode.CEILING
+                ).setScale(0, RoundingMode.CEILING).intValueExact()
 
                 repeat(numMachines) { j ->
-                    createMachine("Machine${i + 1}-${j + 1}", cluster, resourcesPerMachine[i], dvfsEnabled[i], speedFactors[i], TDPs[i])
+                    createMachine(
+                        "Machine${i + 1}-${j + 1}",
+                        cluster,
+                        resourcesPerMachine[i],
+                        dvfsEnabled[i],
+                        speedFactors[i],
+                        TDPs[i]
+                    )
                 }
             }
         }
 
         println("Trace duration: ${traceEndTime - traceStartTime}")
         println("Total CPU usage (cpus * ticks): $totalResourceUsage")
-        println("Average CPU usage: ${totalResourceUsage.toBigDecimal().divide(BigDecimal.valueOf(traceEndTime - traceStartTime), 2, RoundingMode.HALF_UP)}")
+        println(
+            "Average CPU usage: ${
+                totalResourceUsage.toBigDecimal()
+                    .divide(BigDecimal.valueOf(traceEndTime - traceStartTime), 2, RoundingMode.HALF_UP)
+            }"
+        )
 
         println("--- ENVIRONMENT STATS ---")
         println("Number of machines: ${environment.machines.size}")
@@ -188,7 +202,7 @@ object WTASim {
             taskStats.writeToFile(outputPath.resolve("tasks.tsv").toFile())
             workflowStats.writeToFile(outputPath.resolve("workflows.tsv").toFile())
             SimulationSummary(trace, taskStats, workflowStats)
-                    .writeToFile(outputPath.resolve("summary.tsv").toFile())
+                .writeToFile(outputPath.resolve("summary.tsv").toFile())
         } else {
             println()
             println("Summary of simulation results:")

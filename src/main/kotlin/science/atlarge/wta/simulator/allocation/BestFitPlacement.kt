@@ -1,10 +1,11 @@
 package science.atlarge.wta.simulator.allocation
 
 import science.atlarge.wta.simulator.model.Task
+import science.atlarge.wta.simulator.model.Ticks
 
 class BestFitPlacement : TaskPlacementPolicy {
 
-    override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks) {
+    override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks, currentTime: Ticks) {
         // Compute the total amount of available resources to exit early
         var totalFreeCpu = 0
         callbacks.getMachineStates().forEachRemaining { ms ->

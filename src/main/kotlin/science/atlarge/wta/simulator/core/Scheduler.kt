@@ -61,7 +61,7 @@ class Scheduler(
 
     private fun reschedule() {
         rescheduleEventEmitted = false
-        taskPlacementPolicy.scheduleTasks(taskQueue.eligibleTaskIterator(), allocationCallbacks)
+        taskPlacementPolicy.scheduleTasks(taskQueue.eligibleTaskIterator(), allocationCallbacks, simulationState.currentTime)
     }
 
     private fun emitRescheduleEvent() {

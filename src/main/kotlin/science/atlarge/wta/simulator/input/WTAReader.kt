@@ -17,6 +17,7 @@ import science.atlarge.wta.simulator.model.Ticks
 import science.atlarge.wta.simulator.model.Trace
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.collections.HashMap
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import org.apache.hadoop.fs.Path as HPath
@@ -253,7 +254,6 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                         dependenciesGroup.getGroup(0, i).getLong(0, 0)
                     }
                     val taskSlack = slack.get(workflowId)!!.get(taskId) ?: 0
-
                     taskRecords.add(WTATaskRecord(workflowId, taskId, submitTime, runTime, cores, dependencies, taskSlack))
                 }
             }

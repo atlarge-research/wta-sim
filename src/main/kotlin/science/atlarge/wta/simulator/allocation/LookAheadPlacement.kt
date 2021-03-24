@@ -1,11 +1,13 @@
 package science.atlarge.wta.simulator.allocation
 
 import science.atlarge.wta.simulator.model.Task
+import science.atlarge.wta.simulator.model.Ticks
+import java.lang.Long.max
 import kotlin.math.ceil
 
 class LookAheadPlacement : TaskPlacementPolicy {
 
-    override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks) {
+    override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks, currentTime: Ticks) {
         // Compute the total amount of available resources to exit early
         var totalFreeCpu = 0
         callbacks.getMachineStates().forEachRemaining { ms ->
@@ -15,6 +17,19 @@ class LookAheadPlacement : TaskPlacementPolicy {
         // Loop through eligible tasks and try to place them on machines
         while (totalFreeCpu > 0 && eligibleTasks.hasNext()) {
             val task = eligibleTasks.next()
+
+            require(task.earliestStartTime >= 0) {
+                "A task had a negative earliestStartTime: ${task.id} had ${task.earliestStartTime}"
+            }
+
+            require(currentTime >= task.earliestStartTime) {
+                "A task cannot start earlier than its earliest start time. " +
+                        "Simulation time was $currentTime and earliest time is ${task.earliestStartTime}} " +
+                        "Info: ID: ${task.id} ST: ${task.submissionTime} RT: ${task.runTime}"
+            }
+
+            // Update the task slack given some tasks may have been delayed before, eating up slack of this one.
+            task.slack = max(0, task.slack - (currentTime - task.earliestStartTime))
 
             // Get a list of machines that can fit this task, in ascending order of energy efficiency
             val machineStates = callbacks.getMachineStatesByAscendingEnergyEfficiency(task.cpuDemand)

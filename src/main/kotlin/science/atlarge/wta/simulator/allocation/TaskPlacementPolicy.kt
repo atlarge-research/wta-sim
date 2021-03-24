@@ -2,11 +2,12 @@ package science.atlarge.wta.simulator.allocation
 
 import science.atlarge.wta.simulator.model.Machine
 import science.atlarge.wta.simulator.model.Task
+import science.atlarge.wta.simulator.model.Ticks
 import science.atlarge.wta.simulator.state.MachineState
 
 interface TaskPlacementPolicy {
 
-    fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks)
+    fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks, currentTime: Ticks)
 
 }
 
