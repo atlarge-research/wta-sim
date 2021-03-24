@@ -163,6 +163,8 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                 }.toList()
             }
 
+            println("Number of slack filed: ${slackFiles.size}")
+
             for (f in slackFiles) {
                 val slackReader = ParquetFileReader.open(HadoopInputFile.fromPath(
                     HPath(f.absolutePath), Configuration()))
