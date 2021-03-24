@@ -157,14 +157,10 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                 .replace("_parquet", "_slack.parquet")
             val slack_folder = "C:/Users/L/Documents/vu/wta-sim/slack"
 
-            println(folder_name)
-            println(slack_folder)
-
+            // TODO make this more efficient, read this stuff in once instead of every task parquet file...
             val slackFiles = Paths.get(slack_folder, folder_name).toFile().walk().filter { f ->
                     f.isFile && f.extension == "parquet"
                 }.toList()
-
-            println("Number of slack filed: ${slackFiles.size}")
 
             for (f in slackFiles) {
                 val slackReader = ParquetFileReader.open(HadoopInputFile.fromPath(
