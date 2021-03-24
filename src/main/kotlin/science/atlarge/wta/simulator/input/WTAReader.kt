@@ -160,11 +160,9 @@ class WTAReader : TraceReader(), SamplingTraceReader {
             println(folder_name)
             println(slack_folder)
 
-            val slackFiles = Paths.get(slack_folder, folder_name).flatMap { p ->
-                p.toFile().walk().filter { f ->
+            val slackFiles = Paths.get(slack_folder, folder_name).toFile().walk().filter { f ->
                     f.isFile && f.extension == "parquet"
                 }.toList()
-            }
 
             println("Number of slack filed: ${slackFiles.size}")
 
