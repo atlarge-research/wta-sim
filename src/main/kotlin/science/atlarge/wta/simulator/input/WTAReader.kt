@@ -17,7 +17,6 @@ import science.atlarge.wta.simulator.model.Ticks
 import science.atlarge.wta.simulator.model.Trace
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.collections.HashMap
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import org.apache.hadoop.fs.Path as HPath
@@ -38,8 +37,11 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         val workflowRecords = arrayListOf<WTAWorkflowRecord>()
         for (parquetFile in parquetFiles) {
             // Open the parquet file and extract its schema
-            val parquetReader = ParquetFileReader.open(HadoopInputFile.fromPath(
-                    HPath(parquetFile.absolutePath), Configuration()))
+            val parquetReader = ParquetFileReader.open(
+                HadoopInputFile.fromPath(
+                    HPath(parquetFile.absolutePath), Configuration()
+                )
+            )
             val schema = parquetReader.fileMetaData.schema
 
             // Select only the necessary fields from the schema
@@ -53,9 +55,9 @@ class WTAReader : TraceReader(), SamplingTraceReader {
             }
             // TODO: Remove workarounds when legacy/incorrect trace files are replaced
             val taskCountIsLong = partialSchema.fields.find { it.name == "task_count" }!!.asPrimitiveType()
-                    .primitiveTypeName == PrimitiveType.PrimitiveTypeName.INT64
+                .primitiveTypeName == PrimitiveType.PrimitiveTypeName.INT64
             val critPathIsLong = partialSchema.fields.find { it.name == "critical_path_length" }!!.asPrimitiveType()
-                    .primitiveTypeName == PrimitiveType.PrimitiveTypeName.INT64
+                .primitiveTypeName == PrimitiveType.PrimitiveTypeName.INT64
 
             // Prepare a filter to only select valid workflows
             // A critical path length of -1 indicates that a workflow is invalid (contains cycles)
@@ -135,7 +137,12 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         return selectedWorkflowIds
     }
 
-    private fun readTasks(paths: Iterable<Path>, workflowFilter: LongSet, includeOrphans: Boolean, slackDirectory: Path): List<WTATaskRecord> {
+    private fun readTasks(
+        paths: Iterable<Path>,
+        workflowFilter: LongSet,
+        includeOrphans: Boolean,
+        slackDirectory: Path
+    ): List<WTATaskRecord> {
         // Find all parquet files in "tasks" directories (i.e., find all parts of the "tasks" table)
         val parquetFiles = paths.flatMap { p ->
             p.resolve("tasks").toFile().walk().filter { f ->
@@ -144,11 +151,14 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         }
 
         // Prepare a filter to only select tasks that match the workflow filter
-        val filter = FilterCompat.get(ColumnRecordFilter.column("workflow_id",
-            ColumnPredicates.applyFunctionToLong { workflowId -> workflowId in workflowFilter }))
+        val filter = FilterCompat.get(
+            ColumnRecordFilter.column("workflow_id",
+                ColumnPredicates.applyFunctionToLong { workflowId -> workflowId in workflowFilter })
+        )
 
         // Get the workflow slack data
         val slack = HashMap<Long, HashMap<Long, Long>>()
+        val earliestStartTimes = HashMap<Long, HashMap<Long, Long>>()
         val folderName = parquetFiles[0].parentFile.parentFile.parentFile.name
             .replace("_parquet", "_slack.parquet")
 
@@ -157,8 +167,11 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         }.toList()
 
         for (f in slackFiles) {
-            val slackReader = ParquetFileReader.open(HadoopInputFile.fromPath(
-                HPath(f.absolutePath), Configuration()))
+            val slackReader = ParquetFileReader.open(
+                HadoopInputFile.fromPath(
+                    HPath(f.absolutePath), Configuration()
+                )
+            )
             val slackSchema = slackReader.fileMetaData.schema
             while (true) {
                 // Get the next row group and construct a record reader
@@ -187,7 +200,9 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                     val taskId = record.getLong("task_id", 0)
                     val workflowId = record.getLong("workflow_id", 0)
                     val taskSlack = record.getLong("task_slack", 0)
-                    slack.getOrPut(workflowId, {HashMap()})[taskId] = taskSlack
+                    val earliestStartTime = record.getLong("minimal_start_time", 0)
+                    slack.getOrPut(workflowId, { HashMap() })[taskId] = taskSlack
+                    earliestStartTimes.getOrPut(workflowId, { HashMap() })[taskId] = earliestStartTime
                 }
             }
         }
@@ -197,12 +212,16 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         for (parquetFile in parquetFiles) {
 
             // Open the parquet file and extract its schema
-            val parquetReader = ParquetFileReader.open(HadoopInputFile.fromPath(
-                    HPath(parquetFile.absolutePath), Configuration()))
+            val parquetReader = ParquetFileReader.open(
+                HadoopInputFile.fromPath(
+                    HPath(parquetFile.absolutePath), Configuration()
+                )
+            )
             val schema = parquetReader.fileMetaData.schema
 
             // Select only the necessary fields from the schema
-            val fieldsToSelect = setOf("id", "workflow_id", "ts_submit", "runtime", "resource_amount_requested", "parents")
+            val fieldsToSelect =
+                setOf("id", "workflow_id", "ts_submit", "runtime", "resource_amount_requested", "parents")
             val partialSchema = MessageType(schema.name, schema.fields.filter { f ->
                 f.name in fieldsToSelect
             })
@@ -256,7 +275,19 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                     // - Alibaba is known to have these among others
                     if (!slack.containsKey(workflowId)) continue
                     val taskSlack = slack[workflowId]!![taskId] ?: 0
-                    taskRecords.add(WTATaskRecord(workflowId, taskId, submitTime, runTime, cores, dependencies, taskSlack))
+                    val earliestStartTime = earliestStartTimes[workflowId]!![taskId] ?: submitTime
+                    taskRecords.add(
+                        WTATaskRecord(
+                            workflowId,
+                            taskId,
+                            submitTime,
+                            runTime,
+                            cores,
+                            dependencies,
+                            taskSlack,
+                            earliestStartTime
+                        )
+                    )
                 }
             }
         }
@@ -295,7 +326,15 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         // Create tasks
         for (task in tasks) {
             val workflow = if (task.workflowId != null) trace.getWorkflowByName(task.workflowId.toString()) else null
-            trace.createTask(task.taskId.toString(), workflow, task.runTime, task.submitTime,task.slack, task.cores)
+            trace.createTask(
+                task.taskId.toString(),
+                workflow,
+                task.runTime,
+                task.submitTime,
+                task.slack,
+                task.cores,
+                task.earliestStartTime
+            )
         }
         // Add dependencies
         for (taskRecord in tasks) {
@@ -319,16 +358,17 @@ class WTAReader : TraceReader(), SamplingTraceReader {
 }
 
 private class WTAWorkflowRecord(
-        val workflowId: Long,
-        val taskCount: Int
+    val workflowId: Long,
+    val taskCount: Int
 )
 
 private class WTATaskRecord(
-        val workflowId: Long?,
-        val taskId: Long,
-        val submitTime: Ticks,
-        val runTime: Ticks,
-        val cores: Int,
-        val dependencies: LongArray,
-        val slack: Long
+    val workflowId: Long?,
+    val taskId: Long,
+    val submitTime: Ticks,
+    val runTime: Ticks,
+    val cores: Int,
+    val dependencies: LongArray,
+    val slack: Long,
+    val earliestStartTime: Long
 )

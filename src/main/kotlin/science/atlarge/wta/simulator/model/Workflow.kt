@@ -33,56 +33,56 @@ class Workflow(
         }
     }
 
-    fun computeMinimalStartTimes() {
-        // Toposort to compute the optimal start time
-        val waves = hashSetOf<HashSet<String>>()
-
-        val depCount = HashMap<String, Int>()
-        val children = HashMap<String, HashSet<String>>()
-        _tasks.forEach { t ->
-            depCount[t.name] = t.dependencies.size
-            t.dependencies.forEach {
-                children.getOrPut(it.name) { HashSet() }.add(t.name)
-            }
-        }
-
-        while (true) {
-            val wave = HashSet<String>()
-            for ((k, v) in depCount) {
-                if (v == 0) {
-                    wave.add(k)
-                }
-            }
-
-            if (wave.isEmpty()) {
-                break
-            }
-
-            for (t in wave) {
-                depCount.remove(t)
-                children[t]?.forEach { c ->
-                    if (depCount.containsKey(c)) {
-                        depCount[c] = depCount[c]!! - 1
-                    }
-                }
-            }
-            waves.add(wave)
-        }
-
-        for (wave in waves) {
-            // Update all children
-            for (t in wave) {
-                val curTask = tasksByName[t]!!
-                children[t]?.forEach { c ->
-                    val childTask = tasksByName[c]
-                    if (childTask != null) {
-                        childTask.earliestStartTime = max(childTask.earliestStartTime, curTask.earliestStartTime + curTask.runTime)
-                    }
-                }
-            }
-        }
-
-    }
+//    fun computeMinimalStartTimes() {
+//        // Toposort to compute the optimal start time
+//        val waves = hashSetOf<HashSet<String>>()
+//
+//        val depCount = HashMap<String, Int>()
+//        val children = HashMap<String, HashSet<String>>()
+//        _tasks.forEach { t ->
+//            depCount[t.name] = t.dependencies.size
+//            t.dependencies.forEach {
+//                children.getOrPut(it.name) { HashSet() }.add(t.name)
+//            }
+//        }
+//
+//        while (true) {
+//            val wave = HashSet<String>()
+//            for ((k, v) in depCount) {
+//                if (v == 0) {
+//                    wave.add(k)
+//                }
+//            }
+//
+//            if (wave.isEmpty()) {
+//                break
+//            }
+//
+//            for (t in wave) {
+//                depCount.remove(t)
+//                children[t]?.forEach { c ->
+//                    if (depCount.containsKey(c)) {
+//                        depCount[c] = depCount[c]!! - 1
+//                    }
+//                }
+//            }
+//            waves.add(wave)
+//        }
+//
+//        for (wave in waves) {
+//            // Update all children
+//            for (t in wave) {
+//                val curTask = tasksByName[t]!!
+//                children[t]?.forEach { c ->
+//                    val childTask = tasksByName[c]
+//                    if (childTask != null) {
+//                        childTask.earliestStartTime = max(childTask.earliestStartTime, curTask.earliestStartTime + curTask.runTime)
+//                    }
+//                }
+//            }
+//        }
+//
+//    }
 
     fun getTaskByName(taskName: String): Task {
         return tasksByName[taskName] ?: throw IllegalArgumentException(

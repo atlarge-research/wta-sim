@@ -30,14 +30,15 @@ class Trace {
             runTime: Ticks,
             submissionTime: Ticks,
             slack: Long,
-            cpuDemand: Int
+            cpuDemand: Int,
+            earliestStartTime: Ticks
     ): Task {
         require(workflow == null || checkWorkflowExists(workflow)) {
             "Cannot create task: ${workflow!!.idString()} is not part of this trace"
         }
         synchronized(_tasks) {
             val newTaskId = _tasks.size
-            val newTask = Task(newTaskId, taskName, workflow, runTime, submissionTime, slack, cpuDemand)
+            val newTask = Task(newTaskId, taskName, workflow, runTime, submissionTime, slack, cpuDemand, earliestStartTime)
             _tasks.add(newTask)
             return newTask
         }

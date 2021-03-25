@@ -11,7 +11,8 @@ class Task(
     var runTime: Ticks,
     val submissionTime: Ticks,
     var slack: Ticks,
-    val cpuDemand: Int
+    val cpuDemand: Int,
+    val earliestStartTime: Ticks
 ) {
 
     private val _dependencies = mutableSetOf<Task>()
@@ -19,7 +20,6 @@ class Task(
         get() = _dependencies
     var energyConsumed: Double // In milli joules due to runtimes being in milliseconds * Watt
     val originalRuntime: Ticks
-    var earliestStartTime: Ticks = submissionTime
 
     init {
         workflow?.addTask(this)

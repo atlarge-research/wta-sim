@@ -46,7 +46,6 @@ object WTASim {
         }
 
         val trace = traceReader.readTraceFromPaths(listOf(cli.tracePath), cli.slackFolder)
-        trace.workflows.map { it.computeMinimalStartTimes() }
 
         println("--- ${if (hasSampled) "SAMPLED " else ""}TRACE STATS ---")
         println("Number of tasks: ${trace.tasks.size}")
