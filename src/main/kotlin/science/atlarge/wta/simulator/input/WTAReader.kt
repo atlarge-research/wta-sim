@@ -253,7 +253,8 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                     }
 
                     // It may be that some workflow ids are not in the slack computation
-                    // These are Bags of Tasks and were filtered out - Alibaba is known to have these among others
+                    // These are Bags of Tasks and were filtered out as well as workflows with cycles
+                    // - Alibaba is known to have these among others
                     if (!slack.containsKey(workflowId)) continue
                     val taskSlack = slack[workflowId]!![taskId] ?: 0
                     taskRecords.add(WTATaskRecord(workflowId, taskId, submitTime, runTime, cores, dependencies, taskSlack))
