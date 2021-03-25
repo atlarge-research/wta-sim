@@ -5,6 +5,7 @@ import subprocess
 
 trace_dir = "C:/Users/L/Documents/vu/wta-sim/traces/"
 output_location = "C:/Users/L/Documents/vu/wta-sim/experiment_output/"
+slack_location = "C:/Users/L/Documents/vu/wta-sim/slack/"
 
 machine_resources = [128, 16]
 machine_tdps = [280, 100]
@@ -39,6 +40,7 @@ for folder in next(os.walk(trace_dir))[1]:
         command += " -t " + " ".join([str(x) for x in machine_tdps])
         command += " -bc " + " ".join([str(x) for x in machine_base_clocks])
         command += " -mf " + " ".join([str(x) for x in machine_fractions])
+        command += " -sd " + slack_location
         command += " -e " + " ".join([str(x) for x in [dvfs] * len(machine_resources)])
         command += " -i " + os.path.join(trace_dir, folder)
         command += " -o " + output_dir
