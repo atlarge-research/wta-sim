@@ -13,6 +13,7 @@ import science.atlarge.wta.simulator.output.WorkflowStatsCollector
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
+import java.nio.file.Path
 import java.util.*
 import kotlin.system.measureTimeMillis
 
@@ -43,7 +44,8 @@ object WTASim {
                 println("WARNING: Parser for specified trace format does not support sampling")
             }
         }
-        val trace = traceReader.readTraceFromPaths(cli.tracePath, cli.slackFolder)
+
+        val trace = traceReader.readTraceFromPaths(listOf(cli.tracePath), cli.slackFolder)
         trace.workflows.map { it.computeMinimalStartTimes() }
 
         println("--- ${if (hasSampled) "SAMPLED " else ""}TRACE STATS ---")

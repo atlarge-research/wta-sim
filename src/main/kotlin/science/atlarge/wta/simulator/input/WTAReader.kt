@@ -29,7 +29,7 @@ class WTAReader : TraceReader(), SamplingTraceReader {
     private fun readWorkflows(paths: Iterable<Path>): List<WTAWorkflowRecord> {
         // Find all parquet files in "workflows" directories (i.e., find all parts of the "workflows" table)
         val parquetFiles = paths.flatMap { p ->
-            p.resolve("workflows").toFile().walk().filter { f ->
+            p.toFile().resolve("workflows").walk().filter { f ->
                 f.isFile && f.extension == "parquet"
             }.toList()
         }
