@@ -43,7 +43,7 @@ object WTASim {
                 println("WARNING: Parser for specified trace format does not support sampling")
             }
         }
-        val trace = traceReader.readTraceFromPaths(cli.tracePath)
+        val trace = traceReader.readTraceFromPaths(cli.tracePath, cli.slackFolder)
         trace.workflows.map { it.computeMinimalStartTimes() }
 
         println("--- ${if (hasSampled) "SAMPLED " else ""}TRACE STATS ---")

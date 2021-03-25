@@ -135,7 +135,7 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         return selectedWorkflowIds
     }
 
-    private fun readTasks(paths: Iterable<Path>, workflowFilter: LongSet, includeOrphans: Boolean): List<WTATaskRecord> {
+    private fun readTasks(paths: Iterable<Path>, workflowFilter: LongSet, includeOrphans: Boolean, slackDirectory: Path): List<WTATaskRecord> {
         // Find all parquet files in "tasks" directories (i.e., find all parts of the "tasks" table)
         val parquetFiles = paths.flatMap { p ->
             p.resolve("tasks").toFile().walk().filter { f ->
@@ -151,9 +151,8 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         val slack = HashMap<Long, HashMap<Long, Long>>()
         val folderName = parquetFiles[0].parentFile.parentFile.parentFile.name
             .replace("_parquet", "_slack.parquet")
-        val slackFolder = "C:/Users/L/Documents/vu/wta-sim/slack"
 
-        val slackFiles = Paths.get(slackFolder, folderName).toFile().walk().filter { f ->
+        val slackFiles = Paths.get(slackDirectory.toFile().absolutePath, folderName).toFile().walk().filter { f ->
             f.isFile && f.extension == "parquet"
         }.toList()
 
@@ -269,7 +268,8 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         return taskRecords
     }
 
-    override fun readTraceFromPaths(paths: Iterable<Path>): Trace {
+    // TODO make slackFolder optional or only enable with the look_ahead placement policy
+    override fun readTraceFromPaths(paths: Iterable<Path>, slackDirectory: Path): Trace {
         println("--- READING TRACE ---")
         val trace = Trace()
 
@@ -288,7 +288,7 @@ class WTAReader : TraceReader(), SamplingTraceReader {
 
         // Read tasks and sort by (workflow name, task name)
         val tsStartTime = System.currentTimeMillis()
-        val tasks = readTasks(paths, workflowFilter, includeOrphanTasks).toMutableList()
+        val tasks = readTasks(paths, workflowFilter, includeOrphanTasks, slackDirectory).toMutableList()
         val tsEndTime = System.currentTimeMillis()
         println("Read tasks in ${tsEndTime - tsStartTime} ms")
         tasks.sortWith(compareBy(WTATaskRecord::workflowId, WTATaskRecord::taskId))

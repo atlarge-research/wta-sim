@@ -34,7 +34,7 @@ for folder in next(os.walk(trace_dir))[1]:
             continue
 
         print(f"Running {output_dir}")
-        command = "java -cp target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
+        command = "java -Xmx60g -cp target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
         command += " -c " + " ".join([str(x) for x in machine_resources])
         command += " -t " + " ".join([str(x) for x in machine_tdps])
         command += " -bc " + " ".join([str(x) for x in machine_base_clocks])

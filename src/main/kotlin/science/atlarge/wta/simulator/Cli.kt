@@ -11,6 +11,7 @@ import kotlin.system.exitProcess
 
 data class CliValues(
         val tracePath: Path,
+        val slackFolder: Path,
         val resultPath: Path?,
         val machines: Int?,
         val cores: List<Int>?,
@@ -33,6 +34,7 @@ fun parseCliArgs(args: Array<String>): CliValues {
 
         // Extract option values from the command line
         val tracePathStr = cmd.getOptionString(CliOptions.tracePath)
+        val slackPathStr = cmd.getOptionString(CliOptions.slackPath)
         val traceFormatStr = cmd.getOptionStringOrNull(CliOptions.traceFormat)
         val sampleFraction = cmd.getOptionDoubleOrNull(CliOptions.sampleFraction)
         val resultPathStr = cmd.getOptionStringOrNull(CliOptions.resultDir)
@@ -49,6 +51,7 @@ fun parseCliArgs(args: Array<String>): CliValues {
         // Parse and sanity check options
         // - Input description
         val tracePath = parseTracePath(tracePathStr)
+        val slackPath = parseTracePath(slackPathStr)
         val traceReader = parseTraceFormat(traceFormatStr)
         if (sampleFraction != null && (sampleFraction <= 0 || sampleFraction > 1))
             throw ParseException("Sample fraction must be in the range (0, 1], was: $sampleFraction")
@@ -83,7 +86,7 @@ fun parseCliArgs(args: Array<String>): CliValues {
         val taskPlacementPolicy = parseTaskPlacementPolicy(taskPlacementPolicyStr)
         val taskOrderPolicy = parseTaskOrderPolicy(taskOrderPolicyStr)
 
-        return CliValues(tracePath, resultPath, machines, cores, dvfsEnabled, TDPs, baseClocks, targetUtilization, machineFractions, sampleFraction, traceReader,
+        return CliValues(tracePath, slackPath, resultPath, machines, cores, dvfsEnabled, TDPs, baseClocks, targetUtilization, machineFractions, sampleFraction, traceReader,
                 taskPlacementPolicy, taskOrderPolicy)
     } catch (e: ParseException) {
         println(e.message)
@@ -140,11 +143,18 @@ private fun parseTaskOrderPolicy(taskOrderPolicyStr: String?): TaskOrderPolicy {
 
 private object CliOptions {
     val tracePath: Option = Option.builder("i")
-            .longOpt("trace-path")
-            .hasArg()
-            .required()
-            .desc("path to trace file(s)")
-            .build()
+        .longOpt("trace-path")
+        .hasArg()
+        .required()
+        .desc("path to trace file(s)")
+        .build()
+
+    val slackPath: Option = Option.builder("sd")
+        .longOpt("slack-directory")
+        .hasArg()
+        .required()
+        .desc("path to slack file(s)")
+        .build()
 
     val traceFormat: Option = Option.builder("f")
             .longOpt("trace-format")
@@ -220,6 +230,7 @@ private object CliOptions {
 
     val allOptions = Options().apply {
         addOption(tracePath)
+        addOption(slackPath)
         addOption(traceFormat)
         addOption(sampleFraction)
         addOption(resultDir)

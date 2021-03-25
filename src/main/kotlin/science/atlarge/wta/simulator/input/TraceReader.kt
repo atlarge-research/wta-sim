@@ -5,10 +5,10 @@ import java.nio.file.Path
 
 abstract class TraceReader {
 
-    fun readTraceFromPaths(vararg path: Path): Trace {
-        return readTraceFromPaths(path.asIterable())
+    fun readTraceFromPaths(vararg path: Path, slackDirectory: Path): Trace {
+        return readTraceFromPaths(path.asIterable(), slackDirectory)
     }
 
-    abstract fun readTraceFromPaths(paths: Iterable<Path>): Trace
+    abstract fun readTraceFromPaths(paths: Iterable<Path>, slackDirectory: Path): Trace
 
 }
