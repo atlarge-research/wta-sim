@@ -55,7 +55,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
                                     / task.runTime).toDouble()
                         )
                     task.runTime = ceil(task.runTime * additionalSlowdown).toLong()
-                    task.energyConsumed = task.energyConsumed / machineState.dvfsOptions[additionalSlowdown]!!
+                    task.energyConsumed = task.energyConsumed * (1 - machineState.dvfsOptions[additionalSlowdown]!!)
                 }
 
                 callbacks.scheduleTask(task, machineState.machine)

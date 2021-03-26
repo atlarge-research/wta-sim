@@ -21,10 +21,10 @@ class MachineState internal constructor(
     init {
         // Based on Table 3 in https://www.usenix.org/legacy/events/hotpower08/tech/full_papers/dhiman/dhiman.pdf
         // Average of all workflows and PM-1
-        dvfsOptions[1.0] = 1.0
-        dvfsOptions[1.2286] = 1.086
-        dvfsOptions[1.5344] = 1.126
-//        dvfsOptions[2.4728] = 1.124 // We have disabled this one as there is no benefit to it over the previous one.
+        dvfsOptions[1.0] = 0.0
+        dvfsOptions[1.2286] = 0.086
+        dvfsOptions[1.5344] = 0.126
+//        dvfsOptions[2.4728] = 0.124 // We have disabled this one as there is no benefit to it over the previous one.
     }
 
     private val _runningTasks = mutableSetOf<Task>()
