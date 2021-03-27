@@ -44,7 +44,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
                 // At this point we know that we have the most power efficient machine
                 // Update the runtime and power consumption
                 task.runTime = ceil(task.runTime / machineState.speedFactor).toLong()
-                task.energyConsumed = (task.runTime * machineState.TDP).toDouble()
+                task.energyConsumed = task.runTime * (machineState.TDP.toDouble() / machineState.freeCpus) * task.cpuDemand
 
                 // Check if DVFS is enabled to see if we can get further gains
                 if (machineState.dvfsEnabled) {
