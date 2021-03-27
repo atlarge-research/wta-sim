@@ -52,4 +52,4 @@ for folder in next(os.walk(trace_dir))[1]:
         command += " --task-order-policy " + tsp
         command += " --task-placement-policy " + tpp
 
-        subprocess.run(command, shell=True)
+        os.system(command)
