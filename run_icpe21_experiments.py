@@ -7,9 +7,9 @@ trace_dir = "C:/Users/L/Documents/vu/wta-sim/traces/"
 output_location = "C:/Users/L/Documents/vu/wta-sim/experiment_output/"
 slack_location = "C:/Users/L/Documents/vu/wta-sim/slack/"
 
-machine_resources = [128, 16]
-machine_tdps = [280, 100]
-machine_base_clocks = [2.8, 4.0]
+machine_resources = [128, 12]
+machine_tdps = [280, 95]
+machine_base_clocks = [2.9, 4.1]
 machine_fractions = [0.5, 0.5]
 
 # Variations to try:
@@ -35,7 +35,11 @@ for folder in next(os.walk(trace_dir))[1]:
             continue
 
         print(f"Running {output_dir}")
-        command = "java -Xmx60g -cp target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
+        command = f"""sbatch --job-name={output_dir}
+               --output={output_dir}.out
+               --error={output_dir}.err
+               --time=24:00:00 """
+        command += "java -Xmx60g -cp target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
         command += " -c " + " ".join([str(x) for x in machine_resources])
         command += " -t " + " ".join([str(x) for x in machine_tdps])
         command += " -bc " + " ".join([str(x) for x in machine_base_clocks])
