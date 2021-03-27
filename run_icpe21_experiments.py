@@ -30,26 +30,36 @@ for folder in next(os.walk(trace_dir))[1]:
 
     for tu, tsp, tpp, dvfs in itertools.product(target_utilizations, task_selection_policies,
                                                 task_placement_policies, dvfs_enabled):
-        output_dir = os.path.join(output_location, f"{folder}_tu_{tu}_tsp_{tsp}_tpp_{tpp}_dvfs_{dvfs}")
+
+        experiment_name = f"{folder}_tu_{tu}_tsp_{tsp}_tpp_{tpp}_dvfs_{dvfs}"
+        output_dir = os.path.join(output_location, experiment_name)
         if os.path.exists(output_dir):
             continue
 
-        print(f"Running {output_dir}")
-        command = f"""sbatch --job-name={output_dir}
-               --output={output_dir}.out
-               --error={output_dir}.err
-               --time=24:00:00 """
-        command += "java -Xmx60g -cp target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
-        command += " -c " + " ".join([str(x) for x in machine_resources])
-        command += " -t " + " ".join([str(x) for x in machine_tdps])
-        command += " -bc " + " ".join([str(x) for x in machine_base_clocks])
-        command += " -mf " + " ".join([str(x) for x in machine_fractions])
-        command += " -sd " + slack_location
-        command += " -e " + " ".join([str(x) for x in [dvfs] * len(machine_resources)])
-        command += " -i " + os.path.join(trace_dir, folder)
-        command += " -o " + output_dir
-        command += " --target-utilization " + str(tu)
-        command += " --task-order-policy " + tsp
-        command += " --task-placement-policy " + tpp
+        job_directory = "jobscripts"
+        os.makedirs(job_directory, exist_ok = True)
+        job_file = os.path.join(job_directory, f"{experiment_name}.job")
 
-        os.system(command)
+        with open(job_file) as fh:
+            command = "java -Xmx60g -cp /home/lvs215/wta-sim/target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
+            command += " -c " + " ".join([str(x) for x in machine_resources])
+            command += " -t " + " ".join([str(x) for x in machine_tdps])
+            command += " -bc " + " ".join([str(x) for x in machine_base_clocks])
+            command += " -mf " + " ".join([str(x) for x in machine_fractions])
+            command += " -sd " + slack_location
+            command += " -e " + " ".join([str(x) for x in [dvfs] * len(machine_resources)])
+            command += " -i " + os.path.join(trace_dir, folder)
+            command += " -o " + output_dir
+            command += " --target-utilization " + str(tu)
+            command += " --task-order-policy " + tsp
+            command += " --task-placement-policy " + tpp
+
+            fh.writelines("#!/bin/bash\n")
+            fh.writelines(f"#SBATCH --job-name={experiment_name}.job\n")
+            fh.writelines(f"#SBATCH --output={experiment_name}.out\n")
+            fh.writelines(f"#SBATCH --error={experiment_name}.err\n")
+            fh.writelines("#SBATCH --time=48-00:00\n")
+            fh.writelines("#SBATCH --mail-user=lfdversluis@gmail.com\n")
+            fh.writelines(f"{command}\n")
+
+        os.system(f"sbatch {job_file}")
