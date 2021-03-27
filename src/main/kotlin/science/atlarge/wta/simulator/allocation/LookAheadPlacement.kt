@@ -2,8 +2,8 @@ package science.atlarge.wta.simulator.allocation
 
 import science.atlarge.wta.simulator.model.Task
 import science.atlarge.wta.simulator.model.Ticks
-import java.lang.Long.max
 import kotlin.math.ceil
+import kotlin.math.max
 
 class LookAheadPlacement : TaskPlacementPolicy {
 
@@ -51,8 +51,13 @@ class LookAheadPlacement : TaskPlacementPolicy {
                     val additionalSlowdown =
                         machineState.dvfsOptions.floorKey(
                             // Key = leftover slack + runtime / runtime
-                            ((task.originalRuntime + task.slack - task.runTime + task.runTime)
-                                    / max(1, task.runTime)).toDouble()
+                            // Two caveats:
+                            // 1) runtime of tasks can be 0, so we set these to 1 as it's likely
+                            // that given some slack these tasks can then be still delayed significantly
+                            // 2) The minimum slowdown of a task is 1.0. We might hit a special case when
+                            // A task's runtime = 0 and slack = 0 which would cause a 0 or negative slowdown.
+                            max(1.0, ((task.originalRuntime + task.slack - (task.runTime + task.runTime))
+                                    / max(1L, task.runTime)).toDouble())
                         )
                     task.runTime = ceil(task.runTime * additionalSlowdown).toLong()
                     task.energyConsumed = task.energyConsumed * (1 - machineState.dvfsOptions[additionalSlowdown]!!)

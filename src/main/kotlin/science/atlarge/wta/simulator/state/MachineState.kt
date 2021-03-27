@@ -25,6 +25,9 @@ class MachineState internal constructor(
         dvfsOptions[1.2286] = 0.086
         dvfsOptions[1.5344] = 0.126
 //        dvfsOptions[2.4728] = 0.124 // We have disabled this one as there is no benefit to it over the previous one.
+        require(dvfsOptions.firstKey() >= 1.0) {
+            "DVFS slowdown must be >= 1.0 (else it will be a speedup...)"
+        }
     }
 
     private val _runningTasks = mutableSetOf<Task>()
