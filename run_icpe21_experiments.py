@@ -5,9 +5,10 @@ import subprocess
 
 job_directory = "jobscripts"
 os.makedirs(job_directory, exist_ok=True)
-trace_dir = "C:/Users/L/Documents/vu/wta-sim/traces/"
-output_location = "C:/Users/L/Documents/vu/wta-sim/experiment_output/"
-slack_location = "C:/Users/L/Documents/vu/wta-sim/slack/"
+
+trace_dir = "/var/scratch/lvs215/WTA/parquet/"
+output_location = "/var/scratch/lvs215/ic2e-wta-output/simulation_output/"
+slack_location = "/var/scratch/lvs215/ic2e-wta-output/look_ahead/"
 
 machine_resources = [128, 12]
 machine_tdps = [280, 95]
