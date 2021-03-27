@@ -37,10 +37,10 @@ for folder in next(os.walk(trace_dir))[1]:
             continue
 
         job_directory = "jobscripts"
-        os.makedirs(job_directory, exist_ok = True)
+        os.makedirs(job_directory, exist_ok=True)
         job_file = os.path.join(job_directory, f"{experiment_name}.job")
 
-        with open(job_file) as fh:
+        with open(job_file, "w") as fh:
             command = "java -Xmx60g -cp /home/lvs215/wta-sim/target/wta-sim-0.1.jar science.atlarge.wta.simulator.WTASim -f wta"
             command += " -c " + " ".join([str(x) for x in machine_resources])
             command += " -t " + " ".join([str(x) for x in machine_tdps])
