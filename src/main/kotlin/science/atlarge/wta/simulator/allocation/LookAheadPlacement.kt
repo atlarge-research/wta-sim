@@ -52,7 +52,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
                         machineState.dvfsOptions.floorKey(
                             // Key = leftover slack + runtime / runtime
                             ((task.originalRuntime + task.slack - task.runTime + task.runTime)
-                                    / task.runTime).toDouble()
+                                    / max(1, task.runTime)).toDouble()
                         )
                     task.runTime = ceil(task.runTime * additionalSlowdown).toLong()
                     task.energyConsumed = task.energyConsumed * (1 - machineState.dvfsOptions[additionalSlowdown]!!)
