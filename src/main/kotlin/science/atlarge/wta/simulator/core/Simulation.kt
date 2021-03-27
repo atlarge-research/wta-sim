@@ -9,10 +9,10 @@ import science.atlarge.wta.simulator.model.Trace
 import science.atlarge.wta.simulator.state.SimulationState
 
 class Simulation(
-        val environment: Environment,
-        val trace: Trace,
-        taskPlacementPolicy: TaskPlacementPolicy,
-        taskOrderPolicy: TaskOrderPolicy
+    val environment: Environment,
+    val trace: Trace,
+    taskPlacementPolicy: TaskPlacementPolicy,
+    taskOrderPolicy: TaskOrderPolicy
 ) {
 
     private val simulationState = object : SimulationState(trace, environment, Long.MIN_VALUE) {
@@ -46,7 +46,7 @@ class Simulation(
 
     init {
         listOf(workflowStateMonitor, taskStateMonitor, clusterManager, taskQueue, scheduler, actor)
-                .forEach(this::addSimulationObserver)
+            .forEach(this::addSimulationObserver)
     }
 
     fun addSimulationObserver(observer: SimulationObserver) {
@@ -60,10 +60,17 @@ class Simulation(
         for (workflow in trace.workflows) {
             // The submission time of a workflow is defined as the submission time of the
             // first entry task submitted to the system
+
+            // Some workflows were filtered out by the slack computation, workflows with just 1 task are
+            // considered a Bag of tasks. Skip those.
+            if (workflow.tasks.isEmpty()) {
+                continue
+            }
+
             val submitTime = workflow.tasks
-                    .filter { it.dependencies.isEmpty() }
-                    .map { it.submissionTime }.min()
-                    ?: throw IllegalArgumentException("A workflow must consist of at least one task")
+                .filter { it.dependencies.isEmpty() }
+                .map { it.submissionTime }.min()
+                ?: throw IllegalArgumentException("A workflow must consist of at least one task")
             eventQueue.submit(WorkflowSubmittedEvent(submitTime, workflow))
         }
         // Create a task submission event for every task
