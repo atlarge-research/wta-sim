@@ -4,3 +4,6 @@
 
 # Compilation output
 target
+jobscripts
+*.out
+*.err
