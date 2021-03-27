@@ -3,6 +3,8 @@ import itertools
 import os
 import subprocess
 
+job_directory = "jobscripts"
+os.makedirs(job_directory, exist_ok=True)
 trace_dir = "C:/Users/L/Documents/vu/wta-sim/traces/"
 output_location = "C:/Users/L/Documents/vu/wta-sim/experiment_output/"
 slack_location = "C:/Users/L/Documents/vu/wta-sim/slack/"
@@ -35,9 +37,6 @@ for folder in next(os.walk(trace_dir))[1]:
         output_dir = os.path.join(output_location, experiment_name)
         if os.path.exists(output_dir):
             continue
-
-        job_directory = "jobscripts"
-        os.makedirs(job_directory, exist_ok=True)
         job_file = os.path.join(job_directory, f"{experiment_name}.job")
 
         with open(job_file, "w") as fh:
@@ -59,7 +58,6 @@ for folder in next(os.walk(trace_dir))[1]:
             fh.writelines(f"#SBATCH --output={experiment_name}.out\n")
             fh.writelines(f"#SBATCH --error={experiment_name}.err\n")
             fh.writelines("#SBATCH --time=48-00:00\n")
-            fh.writelines("#SBATCH --mail-user=lfdversluis@gmail.com\n")
             fh.writelines(f"{command}\n")
 
         os.system(f"sbatch {job_file}")
