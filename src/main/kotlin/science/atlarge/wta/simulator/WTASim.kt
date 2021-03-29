@@ -119,7 +119,7 @@ object WTASim {
                 val numMachines = totalResourceUsage.toBigDecimal().divide(
                     BigDecimal.valueOf(traceEndTime - traceStartTime)
                         .multiply(BigDecimal.valueOf(resourcesPerMachine[i].toLong())) // number of resources
-                        .multiply(BigDecimal.valueOf(cli.targetUtilization!!)) // target util
+                        .divide(BigDecimal.valueOf(cli.targetUtilization!!)) // target util
                         .multiply(BigDecimal.valueOf(machineFractions[i])), // Fraction of this machine
                     32, RoundingMode.CEILING
                 ).setScale(0, RoundingMode.CEILING).intValueExact()
