@@ -117,12 +117,17 @@ object WTASim {
             repeat(resourcesPerMachine.size) { i ->
                 val cluster = createCluster("Cluster ${i + 1}")
                 val numMachines = totalResourceUsage.toBigDecimal().divide(
+                    // The total amount of resources should be divided by
+                    // the number of resources a machine can deliver, times the utilization rate, times the
+                    // total duration of the workload
                     BigDecimal.valueOf(traceEndTime - traceStartTime)
                         .multiply(BigDecimal.valueOf(resourcesPerMachine[i].toLong())) // number of resources
-                        .divide(BigDecimal.valueOf(cli.targetUtilization!!)) // target util
-                        .multiply(BigDecimal.valueOf(machineFractions[i])), // Fraction of this machine
+                        .multiply(BigDecimal.valueOf(cli.targetUtilization!!)), // target util
                     32, RoundingMode.CEILING
-                ).setScale(0, RoundingMode.CEILING).intValueExact()
+                ).multiply(
+                    BigDecimal.valueOf(machineFractions[i])
+                ) // Downscale the number of machines according to the fraction of the resources this machine should serve
+                    .setScale(0, RoundingMode.CEILING).intValueExact()
 
                 totalResources += resourcesPerMachine[i] * numMachines
 
