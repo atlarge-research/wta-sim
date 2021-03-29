@@ -16,6 +16,8 @@ class ClusterManager(
 ) : SimulationObserver() {
 
     private val machinesByFreeCpus = AVLTree(compareBy(MachineState::freeCpus, { it.machine.id }))
+    private val freeMachinesByPowerEfficiency = AVLTree(compareBy(MachineState::powerEfficiency, { it.machine.id }))
+    private val freeMachinesBySpeed = AVLTree(compareBy(MachineState::normalizedSpeed,{ -it.normalizedSpeed }, { it.machine.id }))
     private var stateChangedEventEmitted: Boolean = false
     private val dummyCluster = Cluster(-1, "X")
     private val dummyMachine = Machine(-1, "X", dummyCluster, Int.MAX_VALUE, false, 1.0, 1)
@@ -24,6 +26,8 @@ class ClusterManager(
         for (machine in environment.machines) {
             val machineState = simulationState.of(machine)
             machinesByFreeCpus.insert(machineState)
+            freeMachinesByPowerEfficiency.insert(machineState)
+            freeMachinesBySpeed .insert(machineState)
         }
 
         registerEventHandler(EventType.TASK_COMPLETED, this::taskCompleted)
@@ -51,13 +55,11 @@ class ClusterManager(
     }
 
     fun machineStatesByAscendingEnergyEfficiency (): Iterator<MachineState> {
-        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, 1, 1, false, 1.0, 0.0))
-            .asSequence().sortedBy { it.powerEfficiency }.iterator()
+        return freeMachinesByPowerEfficiency.iterator()
     }
 
     fun machineStatesByDescendingSpeed (): Iterator<MachineState> {
-        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, 1, 1, false, 1.0, 0.0))
-            .asSequence().sortedByDescending { it.normalizedSpeed }.iterator()
+        return freeMachinesBySpeed.iterator()
     }
 
     fun machineStatesByDescendingFreeCpu(): Iterator<MachineState> {
@@ -76,9 +78,18 @@ class ClusterManager(
 
     private fun updateMachineState(machine: Machine, fn: (MachineState) -> Unit) {
         val machineState = simulationState.of(machine)
+        val wasMachineFree = machineState.freeCpus > 0
         machinesByFreeCpus.remove(machineState)
         fn(machineState)
         machinesByFreeCpus.insert(machineState)
+        // Remove if machine is now no longer free, add if machine has become free
+        if (wasMachineFree && machineState.freeCpus == 0) {
+            freeMachinesByPowerEfficiency.remove(machineState)
+            freeMachinesBySpeed.remove(machineState)
+        } else if (!wasMachineFree && machineState.freeCpus > 0) {
+            freeMachinesByPowerEfficiency.insert(machineState)
+            freeMachinesBySpeed.insert(machineState)
+        }
     }
 
     private fun broadcastStateChange() {
