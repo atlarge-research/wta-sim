@@ -1,5 +1,6 @@
 package science.atlarge.wta.simulator.input
 
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import it.unimi.dsi.fastutil.longs.LongSet
 import org.apache.hadoop.conf.Configuration
@@ -157,8 +158,8 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         )
 
         // Get the workflow slack data
-        val slack = HashMap<Long, HashMap<Long, Long>>()
-        val earliestStartTimes = HashMap<Long, HashMap<Long, Long>>()
+        val slack = HashMap<Long, Long2LongOpenHashMap>()
+        val earliestStartTimes = HashMap<Long, Long2LongOpenHashMap>()
         val folderName = parquetFiles[0].parentFile.parentFile.parentFile.name
             .replace("_parquet", "_slack.parquet")
 
@@ -201,8 +202,8 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                     val workflowId = record.getLong("workflow_id", 0)
                     val taskSlack = record.getLong("task_slack", 0)
                     val earliestStartTime = record.getLong("minimal_start_time", 0)
-                    slack.getOrPut(workflowId, { HashMap() })[taskId] = taskSlack
-                    earliestStartTimes.getOrPut(workflowId, { HashMap() })[taskId] = earliestStartTime
+                    slack.getOrPut(workflowId, { Long2LongOpenHashMap() })[taskId] = taskSlack
+                    earliestStartTimes.getOrPut(workflowId, { Long2LongOpenHashMap() })[taskId] = earliestStartTime
                 }
             }
         }
@@ -274,8 +275,8 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                     // These are Bags of Tasks and were filtered out as well as workflows with cycles
                     // - Alibaba is known to have these among others
                     if (!slack.containsKey(workflowId)) continue
-                    val taskSlack = slack[workflowId]!![taskId] ?: 0
-                    val earliestStartTime = earliestStartTimes[workflowId]!![taskId] ?: submitTime
+                    val taskSlack = slack[workflowId]!![taskId]
+                    val earliestStartTime = earliestStartTimes[workflowId]!![taskId]
                     taskRecords.add(
                         WTATaskRecord(
                             workflowId,
