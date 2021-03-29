@@ -13,7 +13,7 @@ interface TaskPlacementPolicy {
 
 interface AllocationCallbacks {
 
-    fun scheduleTask(task: Task, machine: Machine)
+    fun scheduleTask(task: Task, machine: Machine, resources: Int)
 
     fun getMachineStates(): Iterator<MachineState>
 
@@ -21,7 +21,8 @@ interface AllocationCallbacks {
 
     fun getMachineStatesByAscendingFreeCpu(minimumFreeCpu: Int): Iterator<MachineState>
 
-    fun getMachineStatesByAscendingEnergyEfficiency(minimumFreeCpu: Int): Iterator<MachineState>
+    fun getMachineStatesByAscendingEnergyEfficiency(): Iterator<MachineState>
+    fun getMachineStatesByDescendingMachineSpeed(): Iterator<MachineState>
 
     fun getMachineStatesByDescendingFreeCpu(): Iterator<MachineState>
 

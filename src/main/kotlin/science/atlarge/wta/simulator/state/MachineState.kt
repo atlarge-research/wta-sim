@@ -17,6 +17,7 @@ class MachineState internal constructor(
         private set
 
     val dvfsOptions: TreeMap<Double, Double> = TreeMap() // Delay factor to power savings factor
+    val taskToNumResources = HashMap<Int, Int>()
 
     init {
         // Based on Table 3 in https://www.usenix.org/legacy/events/hotpower08/tech/full_papers/dhiman/dhiman.pdf
@@ -30,10 +31,6 @@ class MachineState internal constructor(
         }
     }
 
-    private val _runningTasks = mutableSetOf<Task>()
-    val runningTasks: Set<Task>
-        get() = _runningTasks
-
     constructor(machine: Machine) : this(
         machine,
         machine.numberOfCpus,
@@ -43,20 +40,21 @@ class MachineState internal constructor(
         machine.powerEfficiency
     )
 
-    fun submitTask(task: Task) {
+    fun submitTask(task: Task, resources: Int) {
         require(task.cpuDemand <= freeCpus) {
             "Not enough CPUs available on ${machine.idString()} to start ${task.idString()} " +
                     "($freeCpus < ${task.cpuDemand})"
         }
-        freeCpus -= task.cpuDemand
-        _runningTasks.add(task)
+        freeCpus -= resources
+        taskToNumResources[task.id] = resources
     }
 
     fun completeTask(task: Task) {
-        require(_runningTasks.remove(task)) {
+        require(taskToNumResources.containsKey(task.id)) {
             "${task.idString()} was not running on ${machine.idString()}"
         }
-        freeCpus += task.cpuDemand
+        freeCpus += taskToNumResources[task.id]!!
+        taskToNumResources.remove(task.id)
     }
 
 }

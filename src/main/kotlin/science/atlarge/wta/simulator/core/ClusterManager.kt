@@ -33,8 +33,8 @@ class ClusterManager(
         }
     }
 
-    fun assignTask(task: Task, machine: Machine) {
-        updateMachineState(machine) { it.submitTask(task) }
+    fun assignTask(task: Task, machine: Machine, resources: Int) {
+        updateMachineState(machine) { it.submitTask(task, resources) }
         broadcastStateChange()
     }
 
@@ -50,9 +50,14 @@ class ClusterManager(
         return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, minimumFreeCpu, 1, false, 1.0, 0.0))
     }
 
-    fun machineStatesByAscendingEnergyEfficiency (minimumFreeCpu: Int): Iterator<MachineState> {
-        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, minimumFreeCpu, 1, false, 1.0, 0.0))
+    fun machineStatesByAscendingEnergyEfficiency (): Iterator<MachineState> {
+        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, 1, 1, false, 1.0, 0.0))
             .asSequence().sortedBy { it.powerEfficiency }.iterator()
+    }
+
+    fun machineStatesByDescendingSpeed (): Iterator<MachineState> {
+        return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, 1, 1, false, 1.0, 0.0))
+            .asSequence().sortedByDescending { it.speedFactor }.iterator()
     }
 
     fun machineStatesByDescendingFreeCpu(): Iterator<MachineState> {

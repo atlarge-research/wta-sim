@@ -23,7 +23,7 @@ class Task(
 
     init {
         workflow?.addTask(this)
-        energyConsumed = -1.0
+        energyConsumed = 0.0
         originalRuntime = runTime
     }
 

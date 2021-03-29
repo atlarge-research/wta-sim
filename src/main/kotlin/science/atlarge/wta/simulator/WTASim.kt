@@ -25,6 +25,7 @@ object WTASim {
 
         TaskPlacementPolicyRegistry.registerProvider("best_fit") { BestFitPlacement() }
         TaskPlacementPolicyRegistry.registerProvider("look_ahead") { LookAheadPlacement() }
+        TaskPlacementPolicyRegistry.registerProvider("fastest_machine") { FastestMachinePlacement() }
         TaskPlacementPolicyRegistry.setDefault("best_fit")
 
         TaskOrderPolicyRegistry.registerProvider("fcfs") { FirstComeFirstServeOrder() }
@@ -111,6 +112,7 @@ object WTASim {
         }
 
         // Compute roughly the number of machines to meet the fraction
+        var totalResources = 0
         val environment = Environment().apply {
             repeat(resourcesPerMachine.size) { i ->
                 val cluster = createCluster("Cluster ${i + 1}")
@@ -121,6 +123,8 @@ object WTASim {
                         .multiply(BigDecimal.valueOf(machineFractions[i])), // Fraction of this machine
                     32, RoundingMode.CEILING
                 ).setScale(0, RoundingMode.CEILING).intValueExact()
+
+                totalResources += resourcesPerMachine[i] * numMachines
 
                 repeat(numMachines) { j ->
                     createMachine(
@@ -133,6 +137,10 @@ object WTASim {
                     )
                 }
             }
+        }
+
+        require(totalResources > resourcesPerMachine.max()!!) {
+            "Tasks exists that require more resources than the entire environment can supply! Aborting."
         }
 
         println("Trace duration: ${traceEndTime - traceStartTime}")

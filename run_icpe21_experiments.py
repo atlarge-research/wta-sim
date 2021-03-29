@@ -18,7 +18,7 @@ machine_fractions = [0.5, 0.5]
 # Variations to try:
 target_utilizations = [0.3]
 task_selection_policies = ["fcfs"]
-task_placement_policies = ["best_fit", "look_ahead"]
+task_placement_policies = ["look_ahead", "fastest_machine"]
 dvfs_enabled = [True, False]
 
 subprocess.run("mvn package", shell=True)

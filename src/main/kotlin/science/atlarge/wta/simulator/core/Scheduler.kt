@@ -19,11 +19,11 @@ class Scheduler(
     private var rescheduleEventEmitted: Boolean = false
     private val allocationCallbacks = object : AllocationCallbacks {
 
-        override fun scheduleTask(task: Task, machine: Machine) {
+        override fun scheduleTask(task: Task, machine: Machine, resources: Int) {
             val taskState = simulationState.of(task)
-            clusterManager.assignTask(task, machine)
+            clusterManager.assignTask(task, machine, resources)
             taskQueue.removeScheduledTask(task)
-            eventQueue.submit(TaskStartedEvent(simulationState.currentTime, task, machine))
+            eventQueue.submit(TaskStartedEvent(simulationState.currentTime, task, machine, resources))
 
             // Compute if we can delay the task using slack
             eventQueue.submit(TaskAttemptCompletedEvent(simulationState.currentTime + maxOf(task.runTime, 0L),
@@ -42,9 +42,12 @@ class Scheduler(
             return clusterManager.machineStatesByAscendingFreeCpu(minimumFreeCpu)
         }
 
-        override fun getMachineStatesByAscendingEnergyEfficiency(minimumFreeCpu: Int): Iterator<MachineState> {
-            return clusterManager.machineStatesByAscendingEnergyEfficiency(minimumFreeCpu)
+        override fun getMachineStatesByAscendingEnergyEfficiency(): Iterator<MachineState> {
+            return clusterManager.machineStatesByAscendingEnergyEfficiency()
+        }
 
+        override fun getMachineStatesByDescendingMachineSpeed(): Iterator<MachineState> {
+            return clusterManager.machineStatesByDescendingSpeed()
         }
 
         override fun getMachineStatesByDescendingFreeCpu(): Iterator<MachineState> {

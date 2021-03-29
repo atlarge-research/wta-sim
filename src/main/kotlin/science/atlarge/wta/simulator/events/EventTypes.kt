@@ -73,7 +73,7 @@ class TaskDependenciesMetEvent(time: Ticks, val task: Task) : Event(time) {
 
 }
 
-class TaskStartedEvent(time: Ticks, val task: Task, val machine: Machine) : Event(time) {
+class TaskStartedEvent(time: Ticks, val task: Task, val machine: Machine, val resources: Int) : Event(time) {
     override val eventType: EventType
         get() = EventType.TASK_STARTED
 

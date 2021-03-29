@@ -6,7 +6,7 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
-class LookAheadPlacement : TaskPlacementPolicy {
+class FastestMachinePlacement : TaskPlacementPolicy {
 
     override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks, currentTime: Ticks) {
         // Compute the total amount of available resources to exit early
@@ -35,38 +35,17 @@ class LookAheadPlacement : TaskPlacementPolicy {
             var coresLeft = task.cpuDemand
 
             // Get a list of machines that can fit this task, in ascending order of energy efficiency
-            val machineStates = callbacks.getMachineStatesByAscendingEnergyEfficiency()
+            val machineStates = callbacks.getMachineStatesByDescendingMachineSpeed()
             while (coresLeft in 1..totalFreeCpu && machineStates.hasNext()) {
                 // Try to place it on the next machine
                 val machineState = machineStates.next()
-                // Check if the machine is too slow
-                if (task.runTime / machineState.speedFactor > task.runTime + task.slack) {
-                    continue
-                }
 
-                // Set the runtime to the slowest machine
-                var runTimeOnThisMachine = task.runTime / machineState.speedFactor
+                // Compute the runtime on this machine (in case we do not get assigned the fastest)
+                val runTimeOnThisMachine = task.runTime / machineState.speedFactor
                 val resourcesToUse = min(machineState.freeCpus, coresLeft)
-                var energyConsumptionOnThisMachine = runTimeOnThisMachine *
+                val energyConsumptionOnThisMachine = runTimeOnThisMachine *
                         (machineState.TDP.toDouble() / machineState.machine.numberOfCpus) *
                         resourcesToUse
-
-                // Check if DVFS is enabled to see if we can get further gains
-                if (machineState.dvfsEnabled) {
-                    val additionalSlowdown =
-                        machineState.dvfsOptions.floorKey(
-                            // Key = leftover slack + runtime / runtime
-                            // Two caveats:
-                            // 1) runtime of tasks can be 0, so we set these to 1 as it's likely
-                            // that given some slack these tasks can then be still delayed significantly
-                            // 2) The minimum slowdown of a task is 1.0. We might hit a special case when
-                            // A task's runtime = 0 and slack = 0 which would cause a 0 or negative slowdown.
-                            max(1.0, ((task.originalRuntime + task.slack - (2*runTimeOnThisMachine))
-                                    / max(1.0, runTimeOnThisMachine)).toDouble())
-                        )
-                    runTimeOnThisMachine *= additionalSlowdown
-                    energyConsumptionOnThisMachine *= (1 - machineState.dvfsOptions[additionalSlowdown]!!)
-                }
 
                 // Update task metrics
                 task.runTime = max(task.runTime, ceil(runTimeOnThisMachine).toLong())
