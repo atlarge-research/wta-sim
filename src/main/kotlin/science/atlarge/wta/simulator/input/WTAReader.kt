@@ -279,8 +279,6 @@ class WTAReader : TraceReader(), SamplingTraceReader {
         // Read tasks and sort by (workflow name, task name)
         val tsStartTime = System.currentTimeMillis()
         val tasks = readTasks(paths, workflowFilter, includeOrphanTasks, slack, earliestStartTimes).toMutableList()
-        slack = null
-        earliestStartTimes = null
         val tsEndTime = System.currentTimeMillis()
         println("Read tasks in ${tsEndTime - tsStartTime} ms")
         tasks.sortWith(compareBy(WTATaskRecord::workflowId, WTATaskRecord::taskId))
