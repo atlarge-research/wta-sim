@@ -1,5 +1,6 @@
 package science.atlarge.wta.simulator.state
 
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
 import science.atlarge.wta.simulator.model.Machine
 import science.atlarge.wta.simulator.model.Task
 import java.util.*
@@ -17,7 +18,7 @@ class MachineState internal constructor(
         private set
 
     val dvfsOptions: TreeMap<Double, Double> = TreeMap() // Delay factor to power savings factor
-    val taskToNumResources = HashMap<Int, Int>()
+    val taskToNumResources = Int2IntOpenHashMap()
 
     init {
         // Based on Table 3 in https://www.usenix.org/legacy/events/hotpower08/tech/full_papers/dhiman/dhiman.pdf
