@@ -54,7 +54,7 @@ class MachineState internal constructor(
         require(taskToNumResources.containsKey(task.id)) {
             "${task.idString()} was not running on ${machine.idString()}"
         }
-        freeCpus += taskToNumResources[task.id]!!
+        freeCpus += taskToNumResources[task.id]
         taskToNumResources.remove(task.id)
     }
 
