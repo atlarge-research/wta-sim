@@ -16,7 +16,7 @@ machine_base_clocks = [2.9, 4.1]
 machine_fractions = [0.5, 0.5]
 
 # Variations to try:
-target_utilizations = [0.3]
+target_utilizations = [0.4]  # 40% is reasonable for hyper scale datacenters - https://www.nrdc.org/sites/default/files/data-center-efficiency-assessment-IP.pdf
 task_selection_policies = ["fcfs"]
 task_placement_policies = ["look_ahead", "fastest_machine"]
 dvfs_enabled = [True, False]
