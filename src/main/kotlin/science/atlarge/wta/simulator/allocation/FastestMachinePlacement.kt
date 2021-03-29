@@ -41,7 +41,7 @@ class FastestMachinePlacement : TaskPlacementPolicy {
                 val machineState = machineStates.next()
 
                 // Compute the runtime on this machine (in case we do not get assigned the fastest)
-                val runTimeOnThisMachine = task.runTime / machineState.speedFactor
+                val runTimeOnThisMachine = task.runTime / machineState.normalizedSpeed
                 val resourcesToUse = min(machineState.freeCpus, coresLeft)
                 val energyConsumptionOnThisMachine = runTimeOnThisMachine *
                         (machineState.TDP.toDouble() / machineState.machine.numberOfCpus) *

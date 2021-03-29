@@ -57,7 +57,7 @@ class ClusterManager(
 
     fun machineStatesByDescendingSpeed (): Iterator<MachineState> {
         return machinesByFreeCpus.iteratorFrom(MachineState(dummyMachine, 1, 1, false, 1.0, 0.0))
-            .asSequence().sortedByDescending { it.speedFactor }.iterator()
+            .asSequence().sortedByDescending { it.normalizedSpeed }.iterator()
     }
 
     fun machineStatesByDescendingFreeCpu(): Iterator<MachineState> {

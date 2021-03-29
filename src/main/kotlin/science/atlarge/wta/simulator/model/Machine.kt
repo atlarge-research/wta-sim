@@ -3,19 +3,19 @@ package science.atlarge.wta.simulator.model
 typealias MachineId = Int
 
 class Machine(
-        val id: MachineId,
-        val name: String,
-        val cluster: Cluster,
-        val numberOfCpus: Int,
-        val dvfsEnabled: Boolean,
-        val speedFactor: Double,
-        val TDP: Int
+    val id: MachineId,
+    val name: String,
+    val cluster: Cluster,
+    val numberOfCpus: Int,
+    val dvfsEnabled: Boolean,
+    val normalizedSpeed: Double,
+    val TDP: Int
 ) {
     var powerEfficiency: Double
 
     init {
         cluster.addMachine(this)
-        powerEfficiency = (TDP.toDouble() / numberOfCpus) * speedFactor
+        powerEfficiency = (TDP.toDouble() / numberOfCpus) * normalizedSpeed
     }
 
     override fun equals(other: Any?): Boolean {

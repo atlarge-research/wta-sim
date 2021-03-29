@@ -10,7 +10,7 @@ class MachineState internal constructor(
     freeCpus: Int,
     val TDP: Int,
     val dvfsEnabled: Boolean,
-    val speedFactor: Double,
+    val normalizedSpeed: Double,
     val powerEfficiency: Double
 ) {
 
@@ -37,7 +37,7 @@ class MachineState internal constructor(
         machine.numberOfCpus,
         machine.TDP,
         machine.dvfsEnabled,
-        machine.speedFactor,
+        machine.normalizedSpeed,
         machine.powerEfficiency
     )
 

@@ -40,12 +40,12 @@ class LookAheadPlacement : TaskPlacementPolicy {
                 // Try to place it on the next machine
                 val machineState = machineStates.next()
                 // Check if the machine is too slow
-                if (task.runTime / machineState.speedFactor > task.runTime + task.slack) {
+                if (task.runTime / machineState.normalizedSpeed > task.runTime + task.slack) {
                     continue
                 }
 
                 // Set the runtime to the slowest machine
-                var runTimeOnThisMachine = task.runTime / machineState.speedFactor
+                var runTimeOnThisMachine = task.runTime / machineState.normalizedSpeed
                 val resourcesToUse = min(machineState.freeCpus, coresLeft)
                 var energyConsumptionOnThisMachine = runTimeOnThisMachine *
                         (machineState.TDP.toDouble() / machineState.machine.numberOfCpus) *

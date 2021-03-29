@@ -25,7 +25,7 @@ class WorkflowStatsCollector(
 
     fun submitTimeOf(workflow: Workflow): Ticks {
         val t = workflowSubmitTimes[workflow.id]
-        require(t > Long.MIN_VALUE) { "Submit time of workflow ${workflow.id} is not known" }
+        require(t >= 0) { "Submit time of workflow ${workflow.id} is not known" }
         return t
     }
 
