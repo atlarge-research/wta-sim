@@ -17,7 +17,7 @@ class ClusterManager(
 
     private val machinesByFreeCpus = AVLTree(compareBy(MachineState::freeCpus, { it.machine.id }))
     private val freeMachinesByPowerEfficiency = AVLTree(compareBy(MachineState::powerEfficiency, { it.machine.id }))
-    private val freeMachinesBySpeed = AVLTree(compareBy(MachineState::normalizedSpeed,{ -it.normalizedSpeed }, { it.machine.id }))
+    private val freeMachinesBySpeed = AVLTree(compareBy<MachineState>({ -it.normalizedSpeed }, { it.machine.id }))
     private var stateChangedEventEmitted: Boolean = false
     private val dummyCluster = Cluster(-1, "X")
     private val dummyMachine = Machine(-1, "X", dummyCluster, Int.MAX_VALUE, false, 1.0, 1)
