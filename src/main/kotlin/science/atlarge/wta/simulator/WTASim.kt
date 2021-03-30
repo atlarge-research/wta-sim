@@ -72,7 +72,7 @@ object WTASim {
         val speedFactors = baseClocks.map { s -> s / highestSpeed }
 
         if (maxResourcesUsed > resourcesPerMachine.max()!!) {
-            throw RuntimeException("WARNING: Some tasks in the trace require more than the maximum number of logical cores per machine")
+            println("WARNING: Some tasks in the trace require more than the maximum number of logical cores per machine")
         }
 
         // Either directly use the specified number of machines, or compute the number of machines needed to achieve
