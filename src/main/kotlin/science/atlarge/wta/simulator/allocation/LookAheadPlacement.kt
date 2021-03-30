@@ -47,8 +47,10 @@ class LookAheadPlacement : TaskPlacementPolicy {
             while (coresLeft in 1..totalFreeCpu && machineStates.hasNext()) {
                 // Try to place it on the next machine
                 val machineState = machineStates.next()
-                // Check if the machine is too slow - only do this if we can afford to do so
-                // if we do not have enough cores otherwise, we cannot avoid using less efficient machines
+                // Check if the machine is too slow - CORNER CASE: only do this if we can afford to do so
+                // if we do not have enough cores otherwise, we cannot avoid using slower machines and break the deadline :(
+                // TODO we might be able to compute if resources become available in time to do complete the task within the slack limit,
+                //  but this increases the complexity considerably!
                 if (canRejectSlowdownMachines && task.runTime / machineState.normalizedSpeed > task.runTime + task.slack) {
                     continue
                 }
