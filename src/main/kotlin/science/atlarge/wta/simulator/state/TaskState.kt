@@ -31,21 +31,25 @@ class TaskState(
     }
 
     fun taskRunning() {
-        require(lifecycle == TaskLifecycle.TASK_SUBMITTED) {
+        // A task can also be running on another machine that got it earlier.
+        // However, all machines should start at the same time, so it cannot be completed.
+        require(lifecycle == TaskLifecycle.TASK_SUBMITTED || lifecycle == TaskLifecycle.TASK_RUNNING) {
             "Task can only start running if it was submitted"
         }
         lifecycle = TaskLifecycle.TASK_RUNNING
     }
 
     fun taskCompleted() {
-        require(lifecycle == TaskLifecycle.TASK_RUNNING) {
+        // The task could've been completed on another machine that was faster.
+        require(lifecycle == TaskLifecycle.TASK_RUNNING || lifecycle == TaskLifecycle.TASK_COMPLETED) {
             "Task can only be completed if it was running"
         }
         lifecycle = TaskLifecycle.TASK_COMPLETED
     }
 
     fun taskCancelled() {
-        require(lifecycle == TaskLifecycle.TASK_RUNNING) {
+        // Could've been cancelled on another machine already. TODO: add check - Must happen all at once
+        require(lifecycle == TaskLifecycle.TASK_RUNNING || lifecycle == TaskLifecycle.TASK_SUBMITTED) {
             "Task can only be cancelled if it was running"
         }
         lifecycle = TaskLifecycle.TASK_SUBMITTED

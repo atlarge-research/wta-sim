@@ -33,23 +33,33 @@ class LookAheadPlacement : TaskPlacementPolicy {
             task.slack = max(0, task.slack - (currentTime - task.earliestStartTime))
 
             var coresLeft = task.cpuDemand
+            var numCoresOfSuitableMachines = 0
+            callbacks.getMachineStatesByAscendingEnergyEfficiency().forEachRemaining{
+                if (task.runTime / it.normalizedSpeed <= task.runTime + task.slack) {
+                    numCoresOfSuitableMachines += it.freeCpus
+                }
+            }
+
+            val canRejectSlowdownMachines =  numCoresOfSuitableMachines >= coresLeft
 
             // Get a list of machines that can fit this task, in ascending order of energy efficiency
             val machineStates = callbacks.getMachineStatesByAscendingEnergyEfficiency()
             while (coresLeft in 1..totalFreeCpu && machineStates.hasNext()) {
                 // Try to place it on the next machine
                 val machineState = machineStates.next()
-                // Check if the machine is too slow
-                if (task.runTime / machineState.normalizedSpeed > task.runTime + task.slack) {
+                // Check if the machine is too slow - only do this if we can afford to do so
+                // if we do not have enough cores otherwise, we cannot avoid using less efficient machines
+                if (canRejectSlowdownMachines && task.runTime / machineState.normalizedSpeed > task.runTime + task.slack) {
                     continue
                 }
 
                 // Set the runtime to the slowest machine
                 var runTimeOnThisMachine = task.runTime / machineState.normalizedSpeed
                 val resourcesToUse = min(machineState.freeCpus, coresLeft)
-                var energyConsumptionOnThisMachine = runTimeOnThisMachine *
-                        (machineState.TDP.toDouble() / machineState.machine.numberOfCpus) *
-                        resourcesToUse
+                var energyConsumptionOnThisMachine = machineState.TDP.toDouble() /
+                        machineState.machine.numberOfCpus *
+                        resourcesToUse *
+                        (runTimeOnThisMachine / 1000 / 3600)  // ms to seconds to hours to get Wh
 
                 // Check if DVFS is enabled to see if we can get further gains
                 if (machineState.dvfsEnabled) {
@@ -61,8 +71,9 @@ class LookAheadPlacement : TaskPlacementPolicy {
                             // that given some slack these tasks can then be still delayed significantly
                             // 2) The minimum slowdown of a task is 1.0. We might hit a special case when
                             // A task's runtime = 0 and slack = 0 which would cause a 0 or negative slowdown.
-                            max(1.0, ((task.originalRuntime + task.slack - (2*runTimeOnThisMachine))
-                                    / max(1.0, runTimeOnThisMachine)).toDouble())
+                            max(1.0, ((task.originalRuntime + task.slack - 2*runTimeOnThisMachine)
+                                    / max(1.0, runTimeOnThisMachine))
+                            )
                         )
                     runTimeOnThisMachine *= additionalSlowdown
                     energyConsumptionOnThisMachine *= (1 - machineState.dvfsOptions[additionalSlowdown]!!)
