@@ -9,7 +9,7 @@ import java.io.File
 
 // TODO: Instead of collecting all data in memory, spill collected events to disk?
 class TaskStatsCollector(
-        private val trace: Trace
+    private val trace: Trace
 ) : SimulationObserver() {
 
     private val taskSubmitTimes = LongArray(trace.tasks.size) { Long.MIN_VALUE }
@@ -80,24 +80,28 @@ class TaskStatsCollector(
 
     fun writeToFile(outputFile: File) {
         outputFile.bufferedWriter().use { writer ->
-            writer.appendln("task.id\tworkflow.id\ttime.submit\ttime.ready\ttime.start\ttime.complete\ttime.runtime.original\ttime.runtime.actual")
+            writer.appendln("task.id\tworkflow.id\ttime.submit\ttime.ready\ttime.start\ttime.minimal.starttime\ttime.complete\ttime.runtime.original\ttime.runtime.actual\tenergy.consumed")
             for (task in trace.tasks) {
                 writer.append(task.id.toString())
-                        .append('\t')
-                        .append(task.workflow?.id?.toString() ?: "-1")
-                        .append('\t')
-                        .append(submitTimeOf(task).toString())
-                        .append('\t')
-                        .append(readyTimeOf(task).toString())
-                        .append('\t')
-                        .append(startTimeOf(task).toString())
-                        .append('\t')
-                        .append(completionTimeOf(task).toString())
-                        .append('\t')
-                        .append(task.originalRuntime.toString())
-                        .append('\t')
-                        .append(task.runTime.toString())
-                        .appendln()
+                    .append('\t')
+                    .append(task.workflow?.id?.toString() ?: "-1")
+                    .append('\t')
+                    .append(submitTimeOf(task).toString())
+                    .append('\t')
+                    .append(readyTimeOf(task).toString())
+                    .append('\t')
+                    .append(startTimeOf(task).toString())
+                    .append('\t')
+                    .append(task.earliestStartTime.toString())
+                    .append('\t')
+                    .append(completionTimeOf(task).toString())
+                    .append('\t')
+                    .append(task.originalRuntime.toString())
+                    .append('\t')
+                    .append(task.runTime.toString())
+                    .append('\t')
+                    .append(task.energyConsumed.toString())
+                    .appendln()
             }
         }
     }
