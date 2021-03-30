@@ -42,9 +42,9 @@ class MachineState internal constructor(
     )
 
     fun submitTask(task: Task, resources: Int) {
-        require(task.cpuDemand <= freeCpus) {
+        require(resources <= freeCpus) {
             "Not enough CPUs available on ${machine.idString()} to start ${task.idString()} " +
-                    "($freeCpus < ${task.cpuDemand})"
+                    "($freeCpus < ${resources})"
         }
         freeCpus -= resources
         taskToNumResources[task.id] = resources
