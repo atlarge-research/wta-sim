@@ -84,7 +84,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
                 // Update task metrics
                 task.runTime = max(task.runTime, ceil(runTimeOnThisMachine).toLong())
                 task.energyConsumed += energyConsumptionOnThisMachine
-                callbacks.scheduleTask(task, machineState.machine, resourcesToUse)
+                callbacks.scheduleTask(task, machineState.machine, resourcesToUse, resourcesToUse == coresLeft)
                 totalFreeCpu -= resourcesToUse
                 coresLeft -= resourcesToUse
             }

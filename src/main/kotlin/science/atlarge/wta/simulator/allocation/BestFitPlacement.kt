@@ -24,7 +24,8 @@ class BestFitPlacement : TaskPlacementPolicy {
                 val machineState = machineStates.next()
                 // TODO change task.cpuDemand such that we take the minimum of the machine's resources and that
                 // task requirements!
-                callbacks.scheduleTask(task, machineState.machine, task.cpuDemand)
+                // TODO change true to check if the taks is completely scheduled if spread across multiple machines
+                callbacks.scheduleTask(task, machineState.machine, task.cpuDemand, true)
                 totalFreeCpu -= task.cpuDemand
                 break
             }

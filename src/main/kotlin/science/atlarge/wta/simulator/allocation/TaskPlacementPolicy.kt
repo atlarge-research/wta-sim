@@ -13,7 +13,7 @@ interface TaskPlacementPolicy {
 
 interface AllocationCallbacks {
 
-    fun scheduleTask(task: Task, machine: Machine, resources: Int)
+    fun scheduleTask(task: Task, machine: Machine, resources: Int, taskCompletelyScheduled: Boolean)
 
     fun getMachineStates(): Iterator<MachineState>
 

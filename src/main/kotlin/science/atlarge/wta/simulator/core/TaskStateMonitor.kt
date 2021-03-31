@@ -91,28 +91,31 @@ class TaskStateMonitor(
     private fun taskAttemptCompleted(event: TaskAttemptCompletedEvent) {
         val task = event.task
         val taskState = simulationState.of(task)
+        // If completed earlier by another machine, skip.
         // Check if this attempt was cancelled
         if (taskState.taskAttemptNumber != event.attemptNumber) return
         // If not, treat the task as completed
         eventQueue.submit(TaskCompletedEvent(event.time, task, event.machine))
-        // Update task lifecycle
-        taskState.taskCompleted()
-        // Remove task as a dependency of other tasks
-        for (dependantTask in reverseDependencies[task.id]) {
-            val dependantTaskState = simulationState.of(dependantTask)
-            dependantTaskState.dependencyCompleted(task)
-            // Check if a dependencies-met event should be emitted
-            if (dependantTaskState.unmetDepedencies.isEmpty() && dependantTaskState.lifecycle != TaskLifecycle.TASK_PENDING) {
-                eventQueue.submit(TaskDependenciesMetEvent(event.time, dependantTask))
+        if (taskState.lifecycle != TaskLifecycle.TASK_COMPLETED) {
+            // Update task lifecycle
+            taskState.taskCompleted()
+            // Remove task as a dependency of other tasks
+            for (dependantTask in reverseDependencies[task.id]) {
+                val dependantTaskState = simulationState.of(dependantTask)
+                dependantTaskState.dependencyCompleted(task)
+                // Check if a dependencies-met event should be emitted
+                if (dependantTaskState.unmetDepedencies.isEmpty() && dependantTaskState.lifecycle != TaskLifecycle.TASK_PENDING) {
+                    eventQueue.submit(TaskDependenciesMetEvent(event.time, dependantTask))
+                }
             }
-        }
-        // Update counters
-        runningTaskCount--
-        completedTaskCount++
-        energyConsumed += task.energyConsumed
-        // Check if an all-tasks-completed event should be emitted
-        if (completedTaskCount == taskCount) {
-            eventQueue.submit(AllTasksCompletedEvent(event.time))
+            // Update counters
+            runningTaskCount--
+            completedTaskCount++
+            energyConsumed += task.energyConsumed
+            // Check if an all-tasks-completed event should be emitted
+            if (completedTaskCount == taskCount) {
+                eventQueue.submit(AllTasksCompletedEvent(event.time))
+            }
         }
     }
 
