@@ -11,6 +11,9 @@ class FastestMachinePlacement : TaskPlacementPolicy {
     override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks, currentTime: Ticks) {
         // Compute the total amount of available resources to exit early
         var totalFreeCpu = callbacks.getNumberOfAvailableResources()
+        val machineStates = callbacks.getMachineStatesByDescendingMachineSpeed()
+        if (!machineStates.hasNext()) return
+        var currentMachine = machineStates.next()
 
         // Loop through eligible tasks and try to place them on machines
         while (totalFreeCpu > 0 && eligibleTasks.hasNext()) {
@@ -32,25 +35,26 @@ class FastestMachinePlacement : TaskPlacementPolicy {
             var coresLeft = task.cpuDemand
 
             // Get a list of machines that can fit this task, in ascending order of energy efficiency
-            val machineStates = callbacks.getMachineStatesByDescendingMachineSpeed()
-            while (coresLeft in 1..totalFreeCpu && machineStates.hasNext()) {
-                // Try to place it on the next machine
-                val machineState = machineStates.next()
+            while (coresLeft in 1..totalFreeCpu) {
 
                 // Compute the runtime on this machine (in case we do not get assigned the fastest)
-                val runTimeOnThisMachine = task.runTime / machineState.normalizedSpeed
-                val resourcesToUse = min(machineState.freeCpus, coresLeft)
-                val energyConsumptionOnThisMachine = machineState.TDP.toDouble() /
-                        machineState.machine.numberOfCpus *
+                val runTimeOnThisMachine = task.runTime / currentMachine.normalizedSpeed
+                val resourcesToUse = min(currentMachine.freeCpus, coresLeft)
+                val energyConsumptionOnThisMachine = currentMachine.TDP.toDouble() /
+                        currentMachine.machine.numberOfCpus *
                         resourcesToUse *
                         (runTimeOnThisMachine / 1000 / 3600)  // ms to seconds to hours to get Wh
 
                 // Update task metrics
                 task.runTime = max(task.runTime, ceil(runTimeOnThisMachine).toLong())
                 task.energyConsumed += energyConsumptionOnThisMachine
-                callbacks.scheduleTask(task, machineState.machine, resourcesToUse, resourcesToUse == coresLeft)
+                callbacks.scheduleTaskOnMachine(task, currentMachine.machine, resourcesToUse, resourcesToUse == coresLeft)
                 totalFreeCpu -= resourcesToUse
                 coresLeft -= resourcesToUse
+
+                if (currentMachine.freeCpus == resourcesToUse && machineStates.hasNext()) {
+                    currentMachine = machineStates.next()
+                }
             }
         }
     }

@@ -22,7 +22,7 @@ class BestFitPlacement : TaskPlacementPolicy {
                 // TODO change task.cpuDemand such that we take the minimum of the machine's resources and that
                 // task requirements!
                 // TODO change true to check if the taks is completely scheduled if spread across multiple machines
-                callbacks.scheduleTask(task, machineState.machine, task.cpuDemand, true)
+                callbacks.scheduleTaskOnMachine(task, machineState.machine, task.cpuDemand, true)
                 totalFreeCpu -= task.cpuDemand
                 break
             }

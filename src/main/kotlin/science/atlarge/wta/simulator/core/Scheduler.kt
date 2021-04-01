@@ -20,7 +20,7 @@ class Scheduler(
     private var rescheduleEventEmitted: Boolean = false
     private val allocationCallbacks = object : AllocationCallbacks {
 
-        override fun scheduleTask(task: Task, machine: Machine, resources: Int, taskCompletelyScheduled: Boolean) {
+        override fun scheduleTaskOnMachine(task: Task, machine: Machine, resources: Int, taskCompletelyScheduled: Boolean) {
             val taskState = simulationState.of(task)
             clusterManager.assignTask(task, machine, resources)
             if (taskCompletelyScheduled) {
