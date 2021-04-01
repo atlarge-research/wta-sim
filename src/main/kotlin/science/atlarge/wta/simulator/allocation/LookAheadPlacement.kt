@@ -16,6 +16,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
         // Loop through eligible tasks and try to place them on machines
         while (totalFreeCpu > 0 && eligibleTasks.hasNext()) {
             val task = eligibleTasks.next()
+            if (task.cpuDemand > totalFreeCpu) continue
 
 //            require(task.earliestStartTime >= 0) {
 //                "A task had a negative earliestStartTime: ${task.id} had ${task.earliestStartTime}"
