@@ -1,5 +1,6 @@
 package science.atlarge.wta.simulator.allocation
 
+import it.unimi.dsi.fastutil.doubles.Double2IntOpenHashMap
 import science.atlarge.wta.simulator.model.Task
 import science.atlarge.wta.simulator.model.Ticks
 import kotlin.math.ceil
@@ -11,8 +12,10 @@ class LookAheadPlacement : TaskPlacementPolicy {
     override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks, currentTime: Ticks) {
         // Compute the total amount of available resources to exit early
         var totalFreeCpu = 0
+        val freeResourcesPerSlowDown = Double2IntOpenHashMap()
         callbacks.getMachineStates().forEachRemaining { ms ->
             totalFreeCpu += ms.freeCpus
+            freeResourcesPerSlowDown.merge(ms.normalizedSpeed, ms.freeCpus, Int::plus)
         }
 
         // Loop through eligible tasks and try to place them on machines
@@ -33,14 +36,10 @@ class LookAheadPlacement : TaskPlacementPolicy {
             task.slack = max(0, task.slack - (currentTime - task.earliestStartTime))
 
             var coresLeft = task.cpuDemand
-            var numCoresOfSuitableMachines = 0
-            callbacks.getMachineStatesByAscendingEnergyEfficiency().forEachRemaining{
-                if (task.runTime / it.normalizedSpeed <= task.runTime + task.slack) {
-                    numCoresOfSuitableMachines += it.freeCpus
-                }
-            }
-
-            val canRejectSlowdownMachines =  numCoresOfSuitableMachines >= coresLeft
+            val canRejectSlowdownMachines = coresLeft <= freeResourcesPerSlowDown
+                    .filter { task.runTime / it.key <= task.runTime + task.slack }
+                    .values
+                    .sum()
 
             // Get a list of machines that can fit this task, in ascending order of energy efficiency
             val machineStates = callbacks.getMachineStatesByAscendingEnergyEfficiency()
@@ -87,6 +86,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
                 callbacks.scheduleTask(task, machineState.machine, resourcesToUse, resourcesToUse == coresLeft)
                 totalFreeCpu -= resourcesToUse
                 coresLeft -= resourcesToUse
+                freeResourcesPerSlowDown[machineState.normalizedSpeed] -= resourcesToUse
             }
         }
     }
