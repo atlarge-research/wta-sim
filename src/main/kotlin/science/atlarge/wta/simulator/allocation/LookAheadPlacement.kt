@@ -12,6 +12,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
     override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks, currentTime: Ticks) {
         // Compute the total amount of available resources to exit early
         var totalFreeCpu = 0
+
         val freeResourcesPerSlowDown = Double2IntOpenHashMap()
         callbacks.getMachineStates().forEachRemaining { ms ->
             totalFreeCpu += ms.freeCpus
@@ -86,7 +87,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
                 callbacks.scheduleTask(task, machineState.machine, resourcesToUse, resourcesToUse == coresLeft)
                 totalFreeCpu -= resourcesToUse
                 coresLeft -= resourcesToUse
-                freeResourcesPerSlowDown[machineState.normalizedSpeed] -= resourcesToUse
+                freeResourcesPerSlowDown[machineState.normalizedSpeed] = freeResourcesPerSlowDown[machineState.normalizedSpeed] - resourcesToUse
             }
         }
     }

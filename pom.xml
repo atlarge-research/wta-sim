@@ -11,10 +11,11 @@
     <properties>
         <commons.cli.version>1.4</commons.cli.version>
         <commons.math.version>3.6.1</commons.math.version>
-	<hadoop.version>3.2.0</hadoop.version>
-        <kotlin.version>1.3.21</kotlin.version>
-	<opencsv.version>4.5</opencsv.version>
-	<parquet.version>1.10.1</parquet.version>
+	    <hadoop.version>3.2.0</hadoop.version>
+        <kotlin.version>1.4.32</kotlin.version>
+	    <opencsv.version>4.5</opencsv.version>
+	    <parquet.version>1.12.0</parquet.version>
+	    <fastutil.version>8.5.4</fastutil.version>
     </properties>
 
     <dependencies>
@@ -22,6 +23,12 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>${fastutil.version}</version>
         </dependency>
 
         <dependency>
@@ -61,7 +68,7 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
-                <version>1.3.21</version>
+                <version>1.4.32</version>
                 <executions>
                     <execution>
                         <id>compile</id>
