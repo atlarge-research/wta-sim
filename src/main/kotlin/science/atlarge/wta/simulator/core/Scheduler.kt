@@ -1,5 +1,6 @@
 package science.atlarge.wta.simulator.core
 
+import it.unimi.dsi.fastutil.doubles.Double2IntOpenHashMap
 import science.atlarge.wta.simulator.allocation.AllocationCallbacks
 import science.atlarge.wta.simulator.allocation.TaskPlacementPolicy
 import science.atlarge.wta.simulator.events.*
@@ -54,6 +55,14 @@ class Scheduler(
 
         override fun getMachineStatesByDescendingMachineSpeed(): Iterator<MachineState> {
             return clusterManager.machineStatesByDescendingSpeed()
+        }
+
+        override fun getNumberOfAvailableResources(): Int {
+            return clusterManager.numberOfFreeResources
+        }
+
+        override fun getNumberOfAvailableResourcesPerMachineSpeed(): Double2IntOpenHashMap {
+            return clusterManager.resourcesAvailablePerMachineSpeed
         }
 
         override fun getMachineStatesByDescendingFreeCpu(): Iterator<MachineState> {

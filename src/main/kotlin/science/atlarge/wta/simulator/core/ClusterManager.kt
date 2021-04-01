@@ -1,5 +1,6 @@
 package science.atlarge.wta.simulator.core
 
+import it.unimi.dsi.fastutil.doubles.Double2IntOpenHashMap
 import science.atlarge.wta.simulator.events.*
 import science.atlarge.wta.simulator.model.Cluster
 import science.atlarge.wta.simulator.model.Environment
@@ -21,9 +22,13 @@ class ClusterManager(
     private var stateChangedEventEmitted: Boolean = false
     private val dummyCluster = Cluster(-1, "X")
     private val dummyMachine = Machine(-1, "X", dummyCluster, Int.MAX_VALUE, false, 1.0, 1)
+    public var numberOfFreeResources = 0
+    public var resourcesAvailablePerMachineSpeed = Double2IntOpenHashMap()
 
     init {
         for (machine in environment.machines) {
+            numberOfFreeResources += machine.numberOfCpus
+            resourcesAvailablePerMachineSpeed.merge(machine.normalizedSpeed, machine.numberOfCpus, Int::plus)
             val machineState = simulationState.of(machine)
             machinesByFreeCpus.insert(machineState)
             freeMachinesByPowerEfficiency.insert(machineState)
@@ -79,8 +84,12 @@ class ClusterManager(
     private fun updateMachineState(machine: Machine, fn: (MachineState) -> Unit) {
         val machineState = simulationState.of(machine)
         val wasMachineFree = machineState.freeCpus > 0
+        numberOfFreeResources -= machineState.freeCpus
+        resourcesAvailablePerMachineSpeed.merge(machineState.normalizedSpeed, machineState.freeCpus, Int::minus)
         machinesByFreeCpus.remove(machineState)
         fn(machineState)
+        numberOfFreeResources += machineState.freeCpus
+        resourcesAvailablePerMachineSpeed.merge(machineState.normalizedSpeed, machineState.freeCpus, Int::plus)
         machinesByFreeCpus.insert(machineState)
         // Remove if machine is now no longer free, add if machine has become free
         if (wasMachineFree && machineState.freeCpus == 0) {

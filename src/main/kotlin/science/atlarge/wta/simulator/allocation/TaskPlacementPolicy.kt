@@ -1,5 +1,6 @@
 package science.atlarge.wta.simulator.allocation
 
+import it.unimi.dsi.fastutil.doubles.Double2IntOpenHashMap
 import science.atlarge.wta.simulator.model.Machine
 import science.atlarge.wta.simulator.model.Task
 import science.atlarge.wta.simulator.model.Ticks
@@ -26,4 +27,6 @@ interface AllocationCallbacks {
 
     fun getMachineStatesByDescendingFreeCpu(): Iterator<MachineState>
 
+    fun getNumberOfAvailableResources(): Int
+    fun getNumberOfAvailableResourcesPerMachineSpeed(): Double2IntOpenHashMap
 }

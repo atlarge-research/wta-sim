@@ -11,13 +11,8 @@ class LookAheadPlacement : TaskPlacementPolicy {
 
     override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks, currentTime: Ticks) {
         // Compute the total amount of available resources to exit early
-        var totalFreeCpu = 0
-
-        val freeResourcesPerSlowDown = Double2IntOpenHashMap()
-        callbacks.getMachineStates().forEachRemaining { ms ->
-            totalFreeCpu += ms.freeCpus
-            freeResourcesPerSlowDown.merge(ms.normalizedSpeed, ms.freeCpus, Int::plus)
-        }
+        var totalFreeCpu = callbacks.getNumberOfAvailableResources()
+        val freeResourcesPerSlowDown = callbacks.getNumberOfAvailableResourcesPerMachineSpeed()
 
         // Loop through eligible tasks and try to place them on machines
         while (totalFreeCpu > 0 && eligibleTasks.hasNext()) {

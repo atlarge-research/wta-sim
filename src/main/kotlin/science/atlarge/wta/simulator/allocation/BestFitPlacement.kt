@@ -7,10 +7,7 @@ class BestFitPlacement : TaskPlacementPolicy {
 
     override fun scheduleTasks(eligibleTasks: Iterator<Task>, callbacks: AllocationCallbacks, currentTime: Ticks) {
         // Compute the total amount of available resources to exit early
-        var totalFreeCpu = 0
-        callbacks.getMachineStates().forEachRemaining { ms ->
-            totalFreeCpu += ms.freeCpus
-        }
+        var totalFreeCpu =  callbacks.getNumberOfAvailableResources()
 
         // Loop through eligible tasks and try to place them on machines
         while (totalFreeCpu > 0 && eligibleTasks.hasNext()) {
