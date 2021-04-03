@@ -19,16 +19,6 @@ class FastestMachinePlacement : TaskPlacementPolicy {
         while (totalFreeCpu > 0 && eligibleTasks.hasNext()) {
             val task = eligibleTasks.next()
 
-//            require(task.earliestStartTime >= 0) {
-//                "A task had a negative earliestStartTime: ${task.id} had ${task.earliestStartTime}"
-//            }
-//
-//            require(currentTime >= task.earliestStartTime) {
-//                "A task cannot start earlier than its earliest start time. " +
-//                        "Simulation time was $currentTime and earliest time is ${task.earliestStartTime}} " +
-//                        "Info: ID: ${task.id} ST: ${task.submissionTime} RT: ${task.runTime}"
-//            }
-
             // Update the task slack given some tasks may have been delayed before, eating up slack of this one.
             task.slack = max(0, task.slack - (currentTime - task.earliestStartTime))
 

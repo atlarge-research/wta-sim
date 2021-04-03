@@ -131,16 +131,31 @@ object WTASim {
 
                 totalResources += resourcesPerMachine[i] * numMachines
 
-                repeat(numMachines) { j ->
-                    createMachine(
-                        "Machine${i + 1}-${j + 1}",
-                        cluster,
-                        resourcesPerMachine[i],
-                        dvfsEnabled[i],
-                        speedFactors[i],
-                        TDPs[i]
-                    )
-                }
+                // TODO this is for optimization.
+                // As we now put tasks on multiple machines, we can refer to all machines of the same type as
+                // just one machine having all those properties and resources
+                // As the compelxity of our policies is (O t * m) where t is the number of tasks and m the number of machines
+                // Lowering his number from 8k -> 2 is a 4000x improvement!
+                // This becomes 24k -> 2 for alibaba 100k.
+                createMachine(
+                    "Machine${i + 1}",
+                    cluster,
+                    resourcesPerMachine[i] * numMachines,
+                    dvfsEnabled[i],
+                    speedFactors[i],
+                    TDPs[i] * numMachines
+                )
+
+//                repeat(numMachines) { j ->
+//                    createMachine(
+//                        "Machine${i + 1}-${j + 1}",
+//                        cluster,
+//                        resourcesPerMachine[i],
+//                        dvfsEnabled[i],
+//                        speedFactors[i],
+//                        TDPs[i]
+//                    )
+//                }
             }
         }
 
