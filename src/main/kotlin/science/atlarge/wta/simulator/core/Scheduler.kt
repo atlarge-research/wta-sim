@@ -26,15 +26,15 @@ class Scheduler(
             if (taskCompletelyScheduled) {
                 taskQueue.removeScheduledTask(task)
                 eventQueue.submit(TaskStartedEvent(simulationState.currentTime, task, machine, resources))
-
-                // Compute if we can delay the task using slack
-                eventQueue.submit(
-                    TaskAttemptCompletedEvent(
-                        simulationState.currentTime + maxOf(task.runTime, 0L),
-                        task, taskState.taskAttemptNumber, machine
-                    )
-                )
             }
+
+            // Compute if we can delay the task using slack
+            eventQueue.submit(
+                TaskAttemptCompletedEvent(
+                    simulationState.currentTime + maxOf(task.runTime, 0L),
+                    task, taskState.taskAttemptNumber, machine, resources
+                )
+            )
         }
 
         override fun getMachineStates(): Iterator<MachineState> {

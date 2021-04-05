@@ -12,7 +12,7 @@ class FastestMachinePlacement : TaskPlacementPolicy {
         // Compute the total amount of available resources to exit early
         var totalFreeCpu = callbacks.getNumberOfAvailableResources()
         val machineStates = callbacks.getMachineStatesByDescendingMachineSpeed()
-        if (!machineStates.hasNext()) return
+        if(!machineStates.hasNext()) return
         var currentMachine = machineStates.next()
 
         // Loop through eligible tasks and try to place them on machines

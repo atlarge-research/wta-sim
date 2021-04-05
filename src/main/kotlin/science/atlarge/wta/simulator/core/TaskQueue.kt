@@ -34,10 +34,7 @@ class TaskQueue(
     }
 
     fun removeScheduledTask(task: Task) {
-        val queueEntry = taskToQueueMap.remove(task.id)
-        if (queueEntry != null) {  // It might be that a previous machine popped this already
-            tasksEligibleToRun.remove(queueEntry)
-        }
+        tasksEligibleToRun.remove(taskToQueueMap.remove(task.id))
     }
 
     private fun addNewTask(event: TaskDependenciesMetEvent) {

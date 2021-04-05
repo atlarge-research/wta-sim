@@ -134,7 +134,7 @@ object WTASim {
                 // TODO this is for optimization.
                 // As we now put tasks on multiple machines, we can refer to all machines of the same type as
                 // just one machine having all those properties and resources
-                // As the compelxity of our policies is (O t * m) where t is the number of tasks and m the number of machines
+                // As the compelxity of our policies is (O t * mlogm) where t is the number of tasks and m the number of machines
                 // Lowering his number from 8k -> 2 is a 4000x improvement!
                 // This becomes 24k -> 2 for alibaba 100k.
                 createMachine(
@@ -159,7 +159,9 @@ object WTASim {
             }
         }
 
-        require(totalResources > resourcesPerMachine.max()!!) {
+        println("${totalResources} en ${maxResourcesUsed}")
+
+        require(totalResources > maxResourcesUsed) {
             "Tasks exists that require more resources than the entire environment can supply! Aborting."
         }
 
@@ -174,7 +176,7 @@ object WTASim {
 
         println("--- ENVIRONMENT STATS ---")
         println("Number of machines: ${environment.machines.size}")
-        println("Number of CPUs per machine: $resourcesPerMachine")
+//        println("Number of CPUs per machine: $resourcesPerMachine")
 //        println("Number of total CPUs: ${resourcesPerMachine.toLong() * environment.machines.size}")
 
         return environment

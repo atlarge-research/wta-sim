@@ -20,6 +20,7 @@ import science.atlarge.wta.simulator.model.Trace
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.math.absoluteValue
+import kotlin.math.max
 import kotlin.math.roundToInt
 import org.apache.hadoop.fs.Path as HPath
 
@@ -213,7 +214,9 @@ class WTAReader : TraceReader(), SamplingTraceReader {
                     val taskId = record.getLong("id", 0)
                     val workflowId = record.getLong("workflow_id", 0)
                     val submitTime = record.getLong("ts_submit", 0)
-                    val runTime = record.getLong("runtime", 0)
+                    // Make sure tasks do not have a runtime of 0 or lower - this causes issues when multiple machines
+                    // need to execute a task, and thus it becomes a mix of scheduled - already done events in the sim.
+                    val runTime = max(1, record.getLong("runtime", 0))
                     val cores = record.getDouble("resource_amount_requested", 0).roundToInt()
                     val TMP = record.getDouble("resource_amount_requested", 0)
                     if (TMP != cores.toDouble()) {

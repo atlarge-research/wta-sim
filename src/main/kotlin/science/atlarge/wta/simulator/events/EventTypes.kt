@@ -93,7 +93,7 @@ class TaskCancelledEvent(time: Ticks, val task: Task, val machine: Machine) : Ev
 
 }
 
-class TaskAttemptCompletedEvent(time: Ticks, val task: Task, val attemptNumber: Int, val machine: Machine) : Event(time) {
+class TaskAttemptCompletedEvent(time: Ticks, val task: Task, val attemptNumber: Int, val machine: Machine, val resources: Int) : Event(time) {
     override val eventType: EventType
         get() = EventType.TASK_ATTEMPT_COMPLETED
 

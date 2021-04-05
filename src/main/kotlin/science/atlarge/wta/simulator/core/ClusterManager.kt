@@ -22,8 +22,8 @@ class ClusterManager(
     private var stateChangedEventEmitted: Boolean = false
     private val dummyCluster = Cluster(-1, "X")
     private val dummyMachine = Machine(-1, "X", dummyCluster, Int.MAX_VALUE, false, 1.0, 1)
-    public var numberOfFreeResources = 0
-    public var resourcesAvailablePerMachineSpeed = Double2IntOpenHashMap()
+    var numberOfFreeResources = 0
+    var resourcesAvailablePerMachineSpeed = Double2IntOpenHashMap()
 
     init {
         for (machine in environment.machines) {

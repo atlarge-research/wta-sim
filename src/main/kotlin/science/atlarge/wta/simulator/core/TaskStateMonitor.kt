@@ -1,5 +1,6 @@
 package science.atlarge.wta.simulator.core
 
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
 import science.atlarge.wta.simulator.events.*
 import science.atlarge.wta.simulator.model.Task
 import science.atlarge.wta.simulator.model.Trace
@@ -7,9 +8,9 @@ import science.atlarge.wta.simulator.state.SimulationState
 import science.atlarge.wta.simulator.state.TaskLifecycle
 
 class TaskStateMonitor(
-        private val simulationState: SimulationState,
-        private val eventQueue: WriteOnlyEventQueue,
-        trace: Trace
+    private val simulationState: SimulationState,
+    private val eventQueue: WriteOnlyEventQueue,
+    trace: Trace
 ) : SimulationObserver() {
 
     val taskCount = trace.tasks.size
@@ -27,6 +28,7 @@ class TaskStateMonitor(
         private set
 
     private val reverseDependencies: Array<Array<Task>>
+    private val numberOfMachinesRunningTask = Int2IntOpenHashMap()
 
     init {
         // Build a reverse dependency map
@@ -71,32 +73,40 @@ class TaskStateMonitor(
     private fun taskStarted(event: TaskStartedEvent) {
         val task = event.task
         val taskState = simulationState.of(task)
-        // Update task lifecycle
-        taskState.taskRunning()
-        // Update counters
-        eligibleTaskCount--
-        runningTaskCount++
+        numberOfMachinesRunningTask.merge(event.task.id, 1, Int::plus)
+        println("task running on ${numberOfMachinesRunningTask[event.task.id]} machine PogU")
+        if (numberOfMachinesRunningTask[event.task.id] == 1) {
+            // Update task lifecycle
+            taskState.taskRunning()
+            // Update counters
+            eligibleTaskCount--
+            runningTaskCount++
+        }
     }
 
     private fun taskCancelled(event: TaskCancelledEvent) {
         val task = event.task
         val taskState = simulationState.of(task)
-        // Update task lifecycle
-        taskState.taskCancelled()
-        // Update counters
-        runningTaskCount--
-        eligibleTaskCount++
+        numberOfMachinesRunningTask[event.task.id].minus(1)
+        if (numberOfMachinesRunningTask[event.task.id] == 0) {
+            // Update task lifecycle
+            taskState.taskCancelled()
+            // Update counters
+            runningTaskCount--
+            eligibleTaskCount++
+            numberOfMachinesRunningTask.remove(event.task.id)
+        }
     }
 
     private fun taskAttemptCompleted(event: TaskAttemptCompletedEvent) {
         val task = event.task
+        eventQueue.submit(TaskCompletedEvent(event.time, task, event.machine))
         val taskState = simulationState.of(task)
-        // If completed earlier by another machine, skip.
         // Check if this attempt was cancelled
         if (taskState.taskAttemptNumber != event.attemptNumber) return
-        // If not, treat the task as completed
-        eventQueue.submit(TaskCompletedEvent(event.time, task, event.machine))
-        if (taskState.lifecycle != TaskLifecycle.TASK_COMPLETED) {
+        numberOfMachinesRunningTask[task.id].minus(1)
+        if (numberOfMachinesRunningTask[event.task.id] == 0) {
+            // If not, treat the task as completed
             // Update task lifecycle
             taskState.taskCompleted()
             // Remove task as a dependency of other tasks
@@ -116,6 +126,7 @@ class TaskStateMonitor(
             if (completedTaskCount == taskCount) {
                 eventQueue.submit(AllTasksCompletedEvent(event.time))
             }
+            numberOfMachinesRunningTask.remove(event.task.id)
         }
     }
 
