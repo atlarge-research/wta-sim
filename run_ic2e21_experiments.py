@@ -24,8 +24,8 @@ dvfs_enabled = [True, False]
 subprocess.run("mvn package", shell=True)
 
 for folder in next(os.walk(trace_dir))[1]:
-    if folder == "alibaba_from_flat" or folder == "alibaba_first_100k_wfids_parquet":
-        continue  # Do not load the entireor the 100k alibaba trace, too much.
+    if folder == "alibaba_from_flat" or folder == "alibaba_first_10k_wfids_parquet":
+        continue  # Do not load the entire (too big) or the smaller 10k alibaba trace (for testing)
 
     if "google" in str(folder).lower(): continue
     if "lanl" in str(folder).lower(): continue
