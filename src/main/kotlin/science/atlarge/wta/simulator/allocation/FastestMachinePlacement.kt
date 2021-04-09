@@ -42,7 +42,7 @@ class FastestMachinePlacement : TaskPlacementPolicy {
                 totalFreeCpu -= resourcesToUse
                 coresLeft -= resourcesToUse
 
-                if (currentMachine.freeCpus == resourcesToUse && machineStates.hasNext()) {
+                if (currentMachine.freeCpus == 0 && machineStates.hasNext()) {
                     currentMachine = machineStates.next()
                 }
             }
