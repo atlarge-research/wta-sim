@@ -159,8 +159,6 @@ object WTASim {
             }
         }
 
-        println("${totalResources} en ${maxResourcesUsed}")
-
         require(totalResources > maxResourcesUsed) {
             "Tasks exists that require more resources than the entire environment can supply! Aborting."
         }
