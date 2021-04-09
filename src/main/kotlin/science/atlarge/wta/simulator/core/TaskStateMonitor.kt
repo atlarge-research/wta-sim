@@ -62,6 +62,7 @@ class TaskStateMonitor(
         // Update counters
         pendingSubmissionTaskCount--
         pendingDependenciesTaskCount++
+
     }
 
     private fun taskDependenciesMet(event: TaskDependenciesMetEvent) {
@@ -74,7 +75,6 @@ class TaskStateMonitor(
         val task = event.task
         val taskState = simulationState.of(task)
         numberOfMachinesRunningTask.merge(event.task.id, 1, Int::plus)
-        println("task running on ${numberOfMachinesRunningTask[event.task.id]} machine PogU")
         if (numberOfMachinesRunningTask[event.task.id] == 1) {
             // Update task lifecycle
             taskState.taskRunning()
@@ -87,8 +87,8 @@ class TaskStateMonitor(
     private fun taskCancelled(event: TaskCancelledEvent) {
         val task = event.task
         val taskState = simulationState.of(task)
-        numberOfMachinesRunningTask[event.task.id].minus(1)
-        if (numberOfMachinesRunningTask[event.task.id] == 0) {
+        numberOfMachinesRunningTask[task.id] = numberOfMachinesRunningTask[task.id] - 1
+        if (numberOfMachinesRunningTask[task.id] == 0) {
             // Update task lifecycle
             taskState.taskCancelled()
             // Update counters
@@ -104,8 +104,8 @@ class TaskStateMonitor(
         val taskState = simulationState.of(task)
         // Check if this attempt was cancelled
         if (taskState.taskAttemptNumber != event.attemptNumber) return
-        numberOfMachinesRunningTask[task.id].minus(1)
-        if (numberOfMachinesRunningTask[event.task.id] == 0) {
+        numberOfMachinesRunningTask[task.id] = numberOfMachinesRunningTask[task.id] - 1
+        if (numberOfMachinesRunningTask[task.id] == 0) {
             // If not, treat the task as completed
             // Update task lifecycle
             taskState.taskCompleted()
