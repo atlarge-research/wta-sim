@@ -35,7 +35,7 @@ class ClusterManager(
             freeMachinesBySpeed .insert(machineState)
         }
 
-        registerEventHandler(EventType.TASK_COMPLETED, this::taskCompleted)
+        registerEventHandler(EventType.TASK_ATTEMPT_COMPLETED, this::taskCompleted)
         registerEventHandler(EventType.TASK_CANCELLED, this::taskCancelled)
         registerEventHandler<Event>(EventType.CLUSTER_STATE_CHANGED) {
             stateChangedEventEmitted = false
@@ -71,12 +71,12 @@ class ClusterManager(
         return machinesByFreeCpus.reverseIterator()
     }
 
-    private fun taskCompleted(event: TaskCompletedEvent) {
+    private fun taskCompleted(event: TaskAttemptCompletedEvent) {
         updateMachineState(event.machine) { it.completeTask(event.task) }
         broadcastStateChange()
     }
 
-    private fun taskCancelled(event: TaskCompletedEvent) {
+    private fun taskCancelled(event: TaskCancelledEvent) {
         updateMachineState(event.machine) { it.completeTask(event.task) }
         broadcastStateChange()
     }

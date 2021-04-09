@@ -215,13 +215,18 @@ object WTASim {
             val endTime = taskStats.completionTimeOf(task)
             require(startTime >= task.submissionTime)
             if (task.runTime > 0) {
-                require(endTime - startTime == task.runTime)
+                require(endTime - startTime == task.runTime) {
+                    "${task.id} ${endTime - startTime} vs ${task.runTime}"
+                }
             } else {
                 require(endTime == startTime)
             }
             for (dep in task.dependencies) {
                 val depEndTime = taskStats.completionTimeOf(dep)
-                require(depEndTime <= startTime)
+                require(depEndTime <= startTime) {
+                    "Task ${task.id} had task ${dep.id} as dependency that finishe at ${depEndTime} but this task started at" +
+                            "${startTime}"
+                }
             }
         }
         println("Simulation result passed sanity check")

@@ -100,12 +100,12 @@ class TaskStateMonitor(
 
     private fun taskAttemptCompleted(event: TaskAttemptCompletedEvent) {
         val task = event.task
-        eventQueue.submit(TaskCompletedEvent(event.time, task, event.machine))
         val taskState = simulationState.of(task)
         // Check if this attempt was cancelled
         if (taskState.taskAttemptNumber != event.attemptNumber) return
         numberOfMachinesRunningTask[task.id] = numberOfMachinesRunningTask[task.id] - 1
         if (numberOfMachinesRunningTask[task.id] == 0) {
+            eventQueue.submit(TaskCompletedEvent(event.time, task, event.machine))
             // If not, treat the task as completed
             // Update task lifecycle
             taskState.taskCompleted()
