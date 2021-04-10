@@ -10,7 +10,7 @@ class Task(
     val workflow: Workflow?,
     var runTime: Ticks,
     val submissionTime: Ticks,
-    var slack: Ticks,
+    val slack: Ticks,
     val cpuDemand: Int,
     val earliestStartTime: Ticks
 ) {
