@@ -33,7 +33,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
 
             var coresLeft = task.cpuDemand
             val canRejectSlowdownMachines = coresLeft <= freeResourcesPerSlowDown
-                    .filter { task.runTime / it.key <= task.runTime + task.slack }
+                    .filter { task.originalRuntime / it.key <= task.originalRuntime + task.slack }
                     .values
                     .sum()
 
@@ -46,7 +46,7 @@ class LookAheadPlacement : TaskPlacementPolicy {
                 // if we do not have enough cores otherwise, we cannot avoid using slower machines and break the deadline :(
                 // TODO we might be able to compute if resources become available in time to do complete the task within the slack limit,
                 //  but this increases the complexity considerably!
-                if (canRejectSlowdownMachines && task.runTime / machineState.normalizedSpeed > task.runTime + task.slack) {
+                if (canRejectSlowdownMachines && task.originalRuntime / machineState.normalizedSpeed > task.originalRuntime + task.slack) {
                     continue
                 }
 
@@ -82,7 +82,6 @@ class LookAheadPlacement : TaskPlacementPolicy {
                 callbacks.scheduleTaskOnMachine(task, machineState.machine, resourcesToUse, resourcesToUse == coresLeft)
                 totalFreeCpu -= resourcesToUse
                 coresLeft -= resourcesToUse
-                freeResourcesPerSlowDown[machineState.normalizedSpeed] = freeResourcesPerSlowDown[machineState.normalizedSpeed] - resourcesToUse
             }
         }
     }
